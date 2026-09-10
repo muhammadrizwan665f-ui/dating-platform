@@ -8,7 +8,7 @@ import {
   PAYMENT_STATUS,
   SUBSCRIPTION_STATUS,
   ROLES,
-} from "../../../../../../packages/shared/constants";
+} from "../../../../../../../packages/shared/constants";
 
 const actionSchema = z.object({
   action: z.enum(["APPROVE", "REJECT", "NEEDS_INFO"]),
