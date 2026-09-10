@@ -59,5 +59,9 @@ app.post("/emit", (req, res) => {
   res.json({ delivered: (userSockets.get(userId)?.size ?? 0) > 0 });
 });
 
-const PORT = process.env.REALTIME_PORT ? Number(process.env.REALTIME_PORT) : 4001;
+const PORT = process.env.PORT
+  ? Number(process.env.PORT)
+  : process.env.REALTIME_PORT
+    ? Number(process.env.REALTIME_PORT)
+    : 4001;
 server.listen(PORT, () => console.log(`realtime server listening on :${PORT}`));
