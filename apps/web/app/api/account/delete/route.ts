@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUserId } from "@/lib/auth/session";
-import { PROFILE_STATUS, USER_STATUS } from "../../../../../packages/shared/constants";
+import { PROFILE_STATUS, USER_STATUS } from "../../../../../../packages/shared/constants";
 
 export async function POST(req: NextRequest) {
   const userId = await getCurrentUserId(req);

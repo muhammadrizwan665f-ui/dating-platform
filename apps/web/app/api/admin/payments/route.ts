@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { requireRole } from "@/lib/auth/session";
-import { ROLES } from "../../../../../packages/shared/constants";
+import { ROLES } from "../../../../../../packages/shared/constants";
 
 export async function GET(req: NextRequest) {
   const admin = await requireRole(req, [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.MODERATOR]);
