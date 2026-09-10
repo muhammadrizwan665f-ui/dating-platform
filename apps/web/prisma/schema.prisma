@@ -138,6 +138,7 @@ model Profile {
   showOnline    Boolean      @default(true)
   showLastSeen  Boolean      @default(true)
   hiddenFromDiscovery Boolean @default(false)
+  isDemo       Boolean       @default(false)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
