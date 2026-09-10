@@ -4,13 +4,13 @@ import { prisma } from "@/lib/db/prisma";
 import { requireRole } from "@/lib/auth/session";
 import { notify } from "@/lib/notifications/notify";
 import {
-
-export const dynamic = "force-dynamic";
   NOTIFICATION_TYPES,
   PAYMENT_STATUS,
   SUBSCRIPTION_STATUS,
   ROLES,
 } from "@dating-platform/shared";
+
+export const dynamic = "force-dynamic";
 
 const actionSchema = z.object({
   action: z.enum(["APPROVE", "REJECT", "NEEDS_INFO"]),
