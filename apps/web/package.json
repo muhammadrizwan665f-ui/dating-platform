@@ -13,15 +13,15 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "next": "14.2.5",
+    "next": "14.2.35",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "next-auth": "4.24.7",
+    "next-auth": "4.24.15",
     "@prisma/client": "5.16.1",
     "bcryptjs": "2.4.3",
     "zod": "3.23.8",
-    "socket.io-client": "4.7.5",
-    "@aws-sdk/client-s3": "3.600.0",
+    "socket.io-client": "4.8.3",
+    "@aws-sdk/client-s3": "3.1129.0",
     "@aws-sdk/s3-request-presigner": "3.600.0",
     "clsx": "2.1.1"
   },
@@ -35,6 +35,6 @@
     "postcss": "8.4.39",
     "autoprefixer": "10.4.19",
     "tsx": "4.16.2",
-    "vitest": "2.0.5"
+    "vitest": "2.1.9"
   }
 }
