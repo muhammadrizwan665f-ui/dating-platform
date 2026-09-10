@@ -3,7 +3,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db/prisma";
 import { assertOfMinimumAge, UnderageError } from "@/lib/age";
-import { USER_STATUS, PROFILE_STATUS } from "../../../../../packages/shared/constants";
+import { USER_STATUS, PROFILE_STATUS } from "@dating-platform/shared";
 
 const registerSchema = z.object({
   firstName: z.string().min(1).max(50),

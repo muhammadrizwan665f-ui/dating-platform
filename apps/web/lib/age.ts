@@ -1,4 +1,4 @@
-import { MIN_AGE } from "../../packages/shared/constants";
+import { MIN_AGE } from "@dating-platform/shared";
 
 /**
  * Calculates age in whole years from a date of birth, as of "now".

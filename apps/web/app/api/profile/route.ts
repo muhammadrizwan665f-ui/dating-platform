@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { publicUrlFor } from "@/lib/storage/storage";
-import { PROFILE_STATUS } from "../../../../packages/shared/constants";
+import { PROFILE_STATUS } from "@dating-platform/shared";
 
 export async function GET(req: NextRequest) {
   const userId = await getCurrentUserId(req);

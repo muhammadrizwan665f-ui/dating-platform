@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { notify } from "@/lib/notifications/notify";
-import { NOTIFICATION_TYPES } from "../../../../../packages/shared/constants";
+import { NOTIFICATION_TYPES } from "@dating-platform/shared";
 
 const bodySchema = z.object({ toUserId: z.string().cuid() });
 

@@ -1,0 +1,7 @@
+{
+  "name": "@dating-platform/shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./constants.ts",
+  "types": "./constants.ts"
+}
