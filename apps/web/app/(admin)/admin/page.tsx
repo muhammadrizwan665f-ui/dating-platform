@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { AdminSidebar } from "../../../components/admin/AdminShell";
 
 interface Stats {
   totalUsers: number;
@@ -40,9 +39,7 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <div className="flex">
-      <AdminSidebar />
-      <main className="flex-1 p-6">
+    <>
         <h1 className="font-display text-2xl font-semibold mb-6">Dashboard</h1>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {cards.map(([label, key]) => (
@@ -52,7 +49,6 @@ export default function AdminDashboardPage() {
             </div>
           ))}
         </div>
-      </main>
-    </div>
+    </>
   );
 }

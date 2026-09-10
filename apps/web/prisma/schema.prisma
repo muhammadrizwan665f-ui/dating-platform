@@ -94,6 +94,7 @@ model User {
   role         Role       @default(USER)
   status       UserStatus @default(PENDING)
   sessionVersion Int      @default(0)
+  theme          String   @default("rose-romance")
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -416,4 +417,12 @@ model ProfileView {
 model Setting {
   key   String @id
   value String
+}
+
+model Theme {
+  id        String  @id // matches the CSS data-theme id, e.g. "rose-romance"
+  name      String
+  isEnabled Boolean @default(true)
+  isDefault Boolean @default(false)
+  sortOrder Int     @default(0)
 }

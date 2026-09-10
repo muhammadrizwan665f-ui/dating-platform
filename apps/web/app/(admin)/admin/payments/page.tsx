@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { AdminSidebar, AdminTable } from "../../../../components/admin/AdminShell";
+import { AdminTable } from "../../../../components/admin/AdminShell";
 import { Button } from "../../../../components/ui/Button";
 
 interface Payment {
@@ -31,9 +31,7 @@ export default function AdminPaymentsPage() {
   }
 
   return (
-    <div className="flex">
-      <AdminSidebar />
-      <main className="flex-1 p-6">
+    <>
         <h1 className="font-display text-2xl font-semibold mb-6">Payments — Pending Review</h1>
         <AdminTable
           columns={["User", "Plan", "Method", "Amount", "Txn Ref", "Actions"]}
@@ -49,7 +47,6 @@ export default function AdminPaymentsPage() {
             </div>,
           ])}
         />
-      </main>
-    </div>
+    </>
   );
 }

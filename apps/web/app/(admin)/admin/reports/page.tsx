@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { AdminSidebar, AdminTable } from "../../../../components/admin/AdminShell";
+import { AdminTable } from "../../../../components/admin/AdminShell";
 import { Button } from "../../../../components/ui/Button";
 import { Badge } from "../../../../components/ui/primitives";
 
@@ -32,9 +32,7 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <div className="flex">
-      <AdminSidebar />
-      <main className="flex-1 p-6">
+    <>
         <h1 className="font-display text-2xl font-semibold mb-6">Reports — Open</h1>
         <AdminTable
           columns={["Type", "Reason", "Reported by", "Status", "Actions"]}
@@ -49,7 +47,6 @@ export default function AdminReportsPage() {
             </div>,
           ])}
         />
-      </main>
-    </div>
+    </>
   );
 }

@@ -1,26 +1,30 @@
 import type { Config } from "tailwindcss";
 
+function v(name: string) {
+  return `rgb(var(--${name}) / <alpha-value>)`;
+}
+
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        base: "#FFFBF9",
-        ink: "#2A2430",
+        base: v("base"),
+        ink: v("ink"),
         rose: {
-          50: "#FFF1F3",
-          100: "#FFE1E6",
-          400: "#FB7185",
-          500: "#F43F5E",
-          600: "#E11D48",
+          50: v("rose-50"),
+          100: v("rose-100"),
+          400: v("rose-400"),
+          500: v("rose-500"),
+          600: v("rose-600"),
         },
         plum: {
-          500: "#8B5CF6",
-          600: "#7C3AED",
+          500: v("plum-500"),
+          600: v("plum-600"),
         },
         gold: {
-          400: "#F5C542",
-          500: "#E0AA1E",
+          400: v("gold-400"),
+          500: v("gold-500"),
         },
         success: "#22C55E",
         warning: "#F59E0B",

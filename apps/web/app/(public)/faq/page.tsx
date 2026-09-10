@@ -1,7 +1,7 @@
 import { StaticPage } from "../../../components/layout/StaticPage";
 
 const faqs: [string, string][] = [
-  ["Is Humraah free?", "Basic access starts at Rs.499. Pro and Diamond plans offer enhanced visibility for an additional fee."],
+  ["Is DilMil free?", "Basic access starts at Rs.499. Pro and Diamond plans offer enhanced visibility for an additional fee."],
   ["How is my age verified?", "We calculate your age from your date of birth on our servers at registration — not from a checkbox."],
   ["Do premium plans guarantee matches?", "No. Premium plans improve your profile's visibility and discovery ranking, not outcomes."],
   ["How do I report someone?", "Use the Report option on any profile, post, comment or conversation."],

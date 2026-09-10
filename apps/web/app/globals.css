@@ -2,15 +2,172 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   THEME SYSTEM — 10 full palettes, switched via [data-theme] on
+   <html>. Every color used across the app resolves through one
+   of these variables (see tailwind.config.ts), so switching the
+   attribute re-colors the entire UI instantly, no rebuild needed.
+   ============================================================ */
+
+:root,
+[data-theme="rose-romance"] {
+  --base: 255 251 249;
+  --ink: 42 36 48;
+  --rose-50: 255 241 243;
+  --rose-100: 255 225 230;
+  --rose-400: 251 113 133;
+  --rose-500: 244 63 94;
+  --rose-600: 225 29 72;
+  --plum-500: 139 92 246;
+  --plum-600: 124 58 237;
+  --gold-400: 245 197 66;
+  --gold-500: 224 170 30;
+}
+
+[data-theme="cherry-love"] {
+  --base: 255 248 247;
+  --ink: 46 26 26;
+  --rose-50: 253 236 235;
+  --rose-100: 251 213 210;
+  --rose-400: 232 93 82;
+  --rose-500: 214 54 42;
+  --rose-600: 185 28 28;
+  --plum-500: 194 65 12;
+  --plum-600: 154 52 18;
+  --gold-400: 251 191 36;
+  --gold-500: 217 119 6;
+}
+
+[data-theme="blush-dream"] {
+  --base: 255 250 251;
+  --ink: 61 42 51;
+  --rose-50: 255 244 247;
+  --rose-100: 252 228 236;
+  --rose-400: 244 143 177;
+  --rose-500: 236 92 142;
+  --rose-600: 214 67 122;
+  --plum-500: 183 148 246;
+  --plum-600: 159 122 234;
+  --gold-400: 255 217 125;
+  --gold-500: 245 185 66;
+}
+
+[data-theme="midnight-love"] {
+  --base: 20 17 26;
+  --ink: 243 238 249;
+  --rose-50: 42 31 46;
+  --rose-100: 61 42 63;
+  --rose-400: 251 113 133;
+  --rose-500: 244 63 94;
+  --rose-600: 225 29 72;
+  --plum-500: 167 139 250;
+  --plum-600: 139 92 246;
+  --gold-400: 252 211 77;
+  --gold-500: 251 191 36;
+}
+
+[data-theme="sunset-hearts"] {
+  --base: 255 249 245;
+  --ink: 61 40 23;
+  --rose-50: 255 240 230;
+  --rose-100: 255 220 194;
+  --rose-400: 255 148 102;
+  --rose-500: 255 107 53;
+  --rose-600: 232 80 28;
+  --plum-500: 236 72 153;
+  --plum-600: 219 39 119;
+  --gold-400: 255 193 69;
+  --gold-500: 255 164 27;
+}
+
+[data-theme="lavender-love"] {
+  --base: 251 250 255;
+  --ink: 46 42 61;
+  --rose-50: 243 240 255;
+  --rose-100: 228 220 255;
+  --rose-400: 167 139 250;
+  --rose-500: 139 92 246;
+  --rose-600: 124 58 237;
+  --plum-500: 192 38 211;
+  --plum-600: 162 28 175;
+  --gold-400: 240 171 252;
+  --gold-500: 232 121 249;
+}
+
+[data-theme="sweet-candy"] {
+  --base: 255 250 252;
+  --ink: 45 27 46;
+  --rose-50: 255 234 245;
+  --rose-100: 255 204 233;
+  --rose-400: 255 111 181;
+  --rose-500: 255 61 154;
+  --rose-600: 224 23 125;
+  --plum-500: 125 211 252;
+  --plum-600: 56 189 248;
+  --gold-400: 253 230 138;
+  --gold-500: 251 191 36;
+}
+
+[data-theme="royal-romance"] {
+  --base: 251 248 245;
+  --ink: 37 26 46;
+  --rose-50: 245 238 251;
+  --rose-100: 229 211 245;
+  --rose-400: 168 85 247;
+  --rose-500: 147 51 234;
+  --rose-600: 126 34 206;
+  --plum-500: 109 40 217;
+  --plum-600: 91 33 182;
+  --gold-400: 251 191 36;
+  --gold-500: 217 119 6;
+}
+
+[data-theme="emerald-romance"] {
+  --base: 247 251 249;
+  --ink: 26 46 36;
+  --rose-50: 236 253 245;
+  --rose-100: 209 250 229;
+  --rose-400: 52 211 153;
+  --rose-500: 16 185 129;
+  --rose-600: 5 150 105;
+  --plum-500: 244 63 94;
+  --plum-600: 225 29 72;
+  --gold-400: 252 211 77;
+  --gold-500: 245 158 11;
+}
+
+[data-theme="neon-love"] {
+  --base: 10 10 18;
+  --ink: 240 240 255;
+  --rose-50: 31 27 46;
+  --rose-100: 45 38 69;
+  --rose-400: 255 46 136;
+  --rose-500: 255 0 128;
+  --rose-600: 230 0 111;
+  --plum-500: 0 245 255;
+  --plum-600: 0 212 224;
+  --gold-400: 255 234 0;
+  --gold-500: 230 210 0;
+}
+
 :root {
   color-scheme: light;
+}
+[data-theme="midnight-love"],
+[data-theme="neon-love"] {
+  color-scheme: dark;
 }
 
 body {
   @apply bg-base text-ink antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Reusable card base so ProfileCard/PostCard/AdminTable share one visual language */
 .surface-card {
   @apply bg-white rounded-2xl shadow-card border border-black/5;
+}
+[data-theme="midnight-love"] .surface-card,
+[data-theme="neon-love"] .surface-card {
+  @apply bg-rose-50 border-white/10;
 }

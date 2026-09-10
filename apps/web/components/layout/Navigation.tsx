@@ -39,7 +39,7 @@ export function Navbar() {
   return (
     <header className="hidden sm:flex items-center justify-between px-8 py-4 border-b border-black/5 bg-white/80 backdrop-blur sticky top-0 z-30">
       <Link href="/" className="font-display text-xl font-semibold text-rose-500">
-        Humraah
+        DilMil
       </Link>
       <nav className="flex items-center gap-6 text-sm font-medium text-ink/70">
         <Link href="/discover">Discover</Link>

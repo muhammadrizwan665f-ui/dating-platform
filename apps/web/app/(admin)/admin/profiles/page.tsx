@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { AdminSidebar } from "../../../../components/admin/AdminShell";
 import { Button } from "../../../../components/ui/Button";
 import { Avatar } from "../../../../components/ui/primitives";
 
@@ -32,9 +31,7 @@ export default function AdminProfilesPage() {
   }
 
   return (
-    <div className="flex">
-      <AdminSidebar />
-      <main className="flex-1 p-6">
+    <>
         <h1 className="font-display text-2xl font-semibold mb-6">Profiles — Pending Review</h1>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {profiles.map((p) => (
@@ -57,7 +54,6 @@ export default function AdminProfilesPage() {
           ))}
           {profiles.length === 0 && <p className="text-sm text-ink/50">No profiles pending review.</p>}
         </div>
-      </main>
-    </div>
+    </>
   );
 }

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "../../../components/ui/Button";
 import { Modal } from "../../../components/ui/primitives";
 import { BottomNavigation } from "../../../components/layout/Navigation";
+import { ThemePicker } from "../../../components/settings/ThemePicker";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -30,6 +31,8 @@ export default function SettingsPage() {
   return (
     <main className="min-h-screen bg-base pb-20 px-4 pt-8 max-w-md mx-auto space-y-6">
       <h1 className="font-display text-2xl font-semibold">Privacy & Safety</h1>
+
+      <ThemePicker />
 
       <div className="surface-card p-5 space-y-4">
         <label className="flex items-center justify-between text-sm">

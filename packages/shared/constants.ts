@@ -50,6 +50,21 @@ export const ROLES = {
 
 export const MIN_AGE = 18;
 
+export const THEMES = [
+  { id: "rose-romance", name: "Rose Romance", swatch: ["#F43F5E", "#8B5CF6"] },
+  { id: "cherry-love", name: "Cherry Love", swatch: ["#D6362A", "#C2410C"] },
+  { id: "blush-dream", name: "Blush Dream", swatch: ["#EC5C8E", "#B794F6"] },
+  { id: "midnight-love", name: "Midnight Love", swatch: ["#14111A", "#F43F5E"] },
+  { id: "sunset-hearts", name: "Sunset Hearts", swatch: ["#FF6B35", "#EC4899"] },
+  { id: "lavender-love", name: "Lavender Love", swatch: ["#8B5CF6", "#C026D3"] },
+  { id: "sweet-candy", name: "Sweet Candy", swatch: ["#FF3D9A", "#38BDF8"] },
+  { id: "royal-romance", name: "Royal Romance", swatch: ["#9333EA", "#D97706"] },
+  { id: "emerald-romance", name: "Emerald Romance", swatch: ["#10B981", "#F43F5E"] },
+  { id: "neon-love", name: "Neon Love", swatch: ["#0A0A12", "#FF0080"] },
+] as const;
+
+export const DEFAULT_THEME = "rose-romance";
+
 // Notification types — extend here, reference by key everywhere else.
 export const NOTIFICATION_TYPES = {
   NEW_LIKE: "NEW_LIKE",

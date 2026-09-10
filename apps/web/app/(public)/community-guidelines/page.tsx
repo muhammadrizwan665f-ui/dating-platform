@@ -15,7 +15,7 @@ const prohibited = [
 export default function CommunityGuidelinesPage() {
   return (
     <StaticPage title="Community Guidelines">
-      <p>By using Humraah you agree to the following rules. Violating them can result in content removal, suspension or a permanent ban.</p>
+      <p>By using DilMil you agree to the following rules. Violating them can result in content removal, suspension or a permanent ban.</p>
       <ul className="list-disc pl-5 space-y-1.5">
         {prohibited.map((rule) => (
           <li key={rule}>{rule}</li>

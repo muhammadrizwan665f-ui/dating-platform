@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { AdminSidebar, AdminTable } from "../../../../components/admin/AdminShell";
+import { AdminTable } from "../../../../components/admin/AdminShell";
 import { Badge } from "../../../../components/ui/primitives";
 import { Button } from "../../../../components/ui/Button";
 
@@ -42,9 +42,7 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="flex">
-      <AdminSidebar />
-      <main className="flex-1 p-6">
+    <>
         <div className="flex items-center justify-between mb-6">
           <h1 className="font-display text-2xl font-semibold">Users</h1>
           <input
@@ -76,7 +74,6 @@ export default function AdminUsersPage() {
             </div>,
           ])}
         />
-      </main>
-    </div>
+    </>
   );
 }

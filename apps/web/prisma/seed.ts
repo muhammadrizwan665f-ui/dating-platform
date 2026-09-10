@@ -56,21 +56,56 @@ async function main() {
       instructions: "Set real account details from Admin > Settings > Payment Methods.",
     },
   });
-
-  // Dev-only demo admin. CHANGE THIS PASSWORD before any shared/staging deploy.
-  const passwordHash = await bcrypt.hash("ChangeMe123!", 12);
-  await prisma.user.upsert({
-    where: { email: "admin@dev.local" },
+  await prisma.paymentMethod.upsert({
+    where: { id: "seed-jazzcash" },
     update: {},
     create: {
-      email: "admin@dev.local",
+      id: "seed-jazzcash",
+      name: "JazzCash",
+      instructions: "Set real account details from Admin > Settings > Payment Methods.",
+    },
+  });
+
+  // Themes — admin can enable/disable/reorder/set default from Admin > Themes.
+  const themeSeeds = [
+    { id: "rose-romance", name: "Rose Romance", isDefault: true },
+    { id: "cherry-love", name: "Cherry Love" },
+    { id: "blush-dream", name: "Blush Dream" },
+    { id: "midnight-love", name: "Midnight Love" },
+    { id: "sunset-hearts", name: "Sunset Hearts" },
+    { id: "lavender-love", name: "Lavender Love" },
+    { id: "sweet-candy", name: "Sweet Candy" },
+    { id: "royal-romance", name: "Royal Romance" },
+    { id: "emerald-romance", name: "Emerald Romance" },
+    { id: "neon-love", name: "Neon Love" },
+  ];
+  for (let i = 0; i < themeSeeds.length; i++) {
+    const t = themeSeeds[i];
+    await prisma.theme.upsert({
+      where: { id: t.id },
+      update: {},
+      create: { id: t.id, name: t.name, isDefault: !!t.isDefault, sortOrder: i },
+    });
+  }
+
+  // Admin account: reads ADMIN_EMAIL/ADMIN_PASSWORD from the environment so
+  // real deployments never rely on a hardcoded default. Falls back to a
+  // clearly-labelled dev-only account if those aren't set (local dev only).
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@dilmil.com";
+  const adminPassword = process.env.ADMIN_PASSWORD || "ChangeMe123!";
+  const passwordHash = await bcrypt.hash(adminPassword, 12);
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {},
+    create: {
+      email: adminEmail,
       passwordHash,
       role: "SUPER_ADMIN",
       status: "ACTIVE",
     },
   });
 
-  console.log("Seed complete: 3 membership plans, 2 payment methods, 1 dev admin.");
+  console.log(`Seed complete: 3 membership plans, 3 payment methods, 1 admin (${adminEmail}).`);
 }
 
 main()

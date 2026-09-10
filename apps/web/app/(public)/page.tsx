@@ -106,7 +106,7 @@ export default function HomePage() {
 
         <footer className="border-t border-black/5 py-10 px-6 sm:px-8 text-sm text-ink/50">
           <div className="max-w-5xl mx-auto flex flex-wrap gap-x-8 gap-y-3 justify-between">
-            <span>© {new Date().getFullYear()} Humraah</span>
+            <span>© {new Date().getFullYear()} DilMil</span>
             <div className="flex flex-wrap gap-x-6 gap-y-2">
               <Link href="/terms">Terms</Link>
               <Link href="/privacy">Privacy</Link>
