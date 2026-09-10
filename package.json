@@ -1,0 +1,5 @@
+{
+  "name": "dating-platform",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"]
+}

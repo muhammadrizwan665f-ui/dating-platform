@@ -1,0 +1,419 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  BANNED
+  DELETED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum ProfileStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  SUSPENDED
+  BANNED
+}
+
+enum Intention {
+  DATING
+  FRIENDSHIP
+  RELATIONSHIP
+  NOT_SURE
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  BLOCKED
+}
+
+enum PostStatus {
+  VISIBLE
+  PENDING_REVIEW
+  HIDDEN
+  REMOVED
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  NEEDS_INFO
+}
+
+enum ReportStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String?    @unique
+  phone        String?    @unique
+  passwordHash String
+  role         Role       @default(USER)
+  status       UserStatus @default(PENDING)
+  sessionVersion Int      @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  profile        Profile?
+  preferences    UserPreference?
+  likesSent      Like[]           @relation("LikesSent")
+  likesReceived  Like[]           @relation("LikesReceived")
+  matchesAsUser1 Match[]          @relation("MatchUser1")
+  matchesAsUser2 Match[]          @relation("MatchUser2")
+  posts          Post[]
+  postLikes      PostLike[]
+  comments       Comment[]
+  notifications  Notification[]
+  subscriptions  Subscription[]
+  payments       Payment[]
+  reportsFiled   Report[]         @relation("ReportsFiled")
+  blocksMade     Block[]          @relation("BlocksMade")
+  blocksReceived Block[]          @relation("BlocksReceived")
+
+  @@index([status])
+}
+
+model Profile {
+  id           String        @id @default(cuid())
+  userId       String        @unique
+  user         User          @relation(fields: [userId], references: [id])
+  displayName  String
+  dob          DateTime
+  gender       Gender
+  city         String
+  bio          String?
+  interests    String[]      @default([])
+  intention    Intention     @default(NOT_SURE)
+  education    String?
+  profession   String?
+  languages    String[]      @default([])
+  height       String?
+  status       ProfileStatus @default(DRAFT)
+  verified     Boolean       @default(false)
+  completeness Int           @default(0)
+  showOnline    Boolean      @default(true)
+  showLastSeen  Boolean      @default(true)
+  hiddenFromDiscovery Boolean @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  photos ProfilePhoto[]
+
+  @@index([status, gender, city])
+}
+
+model ProfilePhoto {
+  id                String   @id @default(cuid())
+  profileId         String
+  profile           Profile  @relation(fields: [profileId], references: [id])
+  url               String
+  position           Int      @default(0)
+  isPrimary         Boolean  @default(false)
+  moderationStatus  PostStatus @default(PENDING_REVIEW)
+  createdAt         DateTime @default(now())
+}
+
+model UserPreference {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  interestedIn  Gender
+  ageMin        Int      @default(18)
+  ageMax        Int      @default(60)
+  cities        String[] @default([])
+}
+
+model Like {
+  id         String   @id @default(cuid())
+  fromUserId String
+  toUserId   String
+  fromUser   User     @relation("LikesSent", fields: [fromUserId], references: [id])
+  toUser     User     @relation("LikesReceived", fields: [toUserId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([fromUserId, toUserId])
+}
+
+model Match {
+  id        String   @id @default(cuid())
+  user1Id   String
+  user2Id   String
+  user1     User     @relation("MatchUser1", fields: [user1Id], references: [id])
+  user2     User     @relation("MatchUser2", fields: [user2Id], references: [id])
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+
+  @@unique([user1Id, user2Id])
+}
+
+model Connection {
+  id           String           @id @default(cuid())
+  requesterId  String
+  addresseeId  String
+  status       ConnectionStatus @default(PENDING)
+  createdAt    DateTime         @default(now())
+
+  @@unique([requesterId, addresseeId])
+}
+
+model Follower {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
+
+model Post {
+  id        String     @id @default(cuid())
+  authorId  String
+  author    User       @relation(fields: [authorId], references: [id])
+  caption   String?
+  status    PostStatus @default(VISIBLE)
+  createdAt DateTime   @default(now())
+
+  images   PostImage[]
+  likes    PostLike[]
+  comments Comment[]
+}
+
+model PostImage {
+  id       String @id @default(cuid())
+  postId   String
+  post     Post   @relation(fields: [postId], references: [id])
+  url      String
+  position Int    @default(0)
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model Comment {
+  id        String     @id @default(cuid())
+  postId    String
+  authorId  String
+  body      String
+  status    PostStatus @default(VISIBLE)
+  post      Post       @relation(fields: [postId], references: [id])
+  author    User       @relation(fields: [authorId], references: [id])
+  createdAt DateTime   @default(now())
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  user1Id       String
+  user2Id       String
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+
+  messages Message[]
+
+  @@unique([user1Id, user2Id])
+}
+
+model Message {
+  id             String        @id @default(cuid())
+  conversationId String
+  conversation   Conversation  @relation(fields: [conversationId], references: [id])
+  senderId       String
+  body           String
+  status         MessageStatus @default(SENT)
+  createdAt      DateTime      @default(now())
+  deletedForSender Boolean     @default(false)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  payload   Json
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model MembershipPlan {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  price        Int
+  durationDays Int
+  features     Json
+  badge        String?
+  isActive     Boolean  @default(true)
+
+  subscriptions Subscription[]
+  payments      Payment[]
+}
+
+model Subscription {
+  id        String             @id @default(cuid())
+  userId    String
+  user      User               @relation(fields: [userId], references: [id])
+  planId    String
+  plan      MembershipPlan     @relation(fields: [planId], references: [id])
+  status    SubscriptionStatus @default(PENDING)
+  startDate DateTime?
+  endDate   DateTime?
+  createdAt DateTime           @default(now())
+}
+
+model PaymentMethod {
+  id           String   @id @default(cuid())
+  name         String
+  instructions String
+  isActive     Boolean  @default(true)
+
+  payments Payment[]
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  planId          String
+  plan            MembershipPlan @relation(fields: [planId], references: [id])
+  methodId        String
+  method          PaymentMethod @relation(fields: [methodId], references: [id])
+  amount          Int
+  txnRef          String
+  paymentDate     DateTime
+  proofUrl        String?
+  note            String?
+  status          PaymentStatus @default(PENDING_REVIEW)
+  reviewedBy      String?
+  createdAt       DateTime      @default(now())
+}
+
+model VerificationRequest {
+  id         String   @id @default(cuid())
+  profileId  String
+  status     String   @default("PENDING")
+  reviewedBy String?
+  createdAt  DateTime @default(now())
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String
+  reporter   User         @relation("ReportsFiled", fields: [reporterId], references: [id])
+  targetType String
+  targetId   String
+  reason     String
+  details    String?
+  status     ReportStatus @default(OPEN)
+  createdAt  DateTime     @default(now())
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  blocker   User     @relation("BlocksMade", fields: [blockerId], references: [id])
+  blocked   User     @relation("BlocksReceived", fields: [blockedId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+}
+
+model Boost {
+  id         String   @id @default(cuid())
+  userId     String
+  startsAt   DateTime
+  endsAt     DateTime
+  multiplier Float    @default(1.5)
+}
+
+model AdminNote {
+  id         String   @id @default(cuid())
+  targetType String
+  targetId   String
+  adminId    String
+  note       String
+  createdAt  DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  target    String
+  meta      Json?
+  createdAt DateTime @default(now())
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String?
+  subject   String
+  category  String
+  message   String
+  status    String   @default("OPEN")
+  createdAt DateTime @default(now())
+}
+
+model ProfileView {
+  id        String   @id @default(cuid())
+  viewerId  String
+  viewedId  String
+  action    String   @default("VIEW") // VIEW | PASS
+  createdAt DateTime @default(now())
+
+  @@index([viewedId])
+}
+
+model Setting {
+  key   String @id
+  value String
+}

@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-base text-ink antialiased;
+}
+
+/* Reusable card base so ProfileCard/PostCard/AdminTable share one visual language */
+.surface-card {
+  @apply bg-white rounded-2xl shadow-card border border-black/5;
+}

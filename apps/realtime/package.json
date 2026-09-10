@@ -1,0 +1,22 @@
+{
+  "name": "dating-platform-realtime",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p .",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "express": "4.19.2",
+    "socket.io": "4.7.5",
+    "jsonwebtoken": "9.0.2"
+  },
+  "devDependencies": {
+    "typescript": "5.5.3",
+    "tsx": "4.16.2",
+    "@types/express": "4.17.21",
+    "@types/jsonwebtoken": "9.0.6",
+    "@types/node": "20.14.9"
+  }
+}
