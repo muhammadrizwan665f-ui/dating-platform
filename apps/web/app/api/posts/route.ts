@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { PostStatus as PostStatusT } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 const createSchema = z.object({
   caption: z.string().max(2000).optional(),
   imageKeys: z.array(z.string()).max(10).default([]),

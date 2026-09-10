@@ -6,6 +6,8 @@ import { emitToUser } from "@/lib/realtime/emit";
 import { NOTIFICATION_TYPES } from "@dating-platform/shared";
 import { notify } from "@/lib/notifications/notify";
 
+export const dynamic = "force-dynamic";
+
 const sendSchema = z.object({
   conversationId: z.string().cuid(),
   body: z.string().min(1).max(2000),

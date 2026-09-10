@@ -4,6 +4,8 @@ import { getCurrentUserId } from "@/lib/auth/session";
 import { notify } from "@/lib/notifications/notify";
 import { NOTIFICATION_TYPES } from "@dating-platform/shared";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const userId = await getCurrentUserId(req);
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

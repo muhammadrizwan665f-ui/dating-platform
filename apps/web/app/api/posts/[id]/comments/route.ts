@@ -5,6 +5,8 @@ import { getCurrentUserId } from "@/lib/auth/session";
 import { notify } from "@/lib/notifications/notify";
 import { NOTIFICATION_TYPES } from "@dating-platform/shared";
 
+export const dynamic = "force-dynamic";
+
 const bodySchema = z.object({ body: z.string().min(1).max(500) });
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {

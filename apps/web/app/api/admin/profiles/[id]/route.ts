@@ -5,6 +5,8 @@ import { requireRole } from "@/lib/auth/session";
 import { notify } from "@/lib/notifications/notify";
 import { NOTIFICATION_TYPES, PROFILE_STATUS, ROLES } from "@dating-platform/shared";
 
+export const dynamic = "force-dynamic";
+
 const schema = z.object({ action: z.enum(["APPROVE", "REJECT"]), reason: z.string().max(500).optional() });
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {

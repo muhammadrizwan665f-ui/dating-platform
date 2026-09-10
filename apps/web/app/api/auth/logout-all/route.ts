@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUserId } from "@/lib/auth/session";
 
+export const dynamic = "force-dynamic";
+
 /**
  * NextAuth uses stateless JWT sessions, so there's no server-side session
  * table to delete rows from. Instead we bump sessionVersion; the jwt()

@@ -5,6 +5,8 @@ import { getCurrentUserId } from "@/lib/auth/session";
 import { notify } from "@/lib/notifications/notify";
 import { NOTIFICATION_TYPES, PAYMENT_STATUS } from "@dating-platform/shared";
 
+export const dynamic = "force-dynamic";
+
 const submitSchema = z.object({
   planId: z.string().cuid(),
   methodId: z.string().cuid(),

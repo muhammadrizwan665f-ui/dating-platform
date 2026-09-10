@@ -3,6 +3,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUserId } from "@/lib/auth/session";
 
+export const dynamic = "force-dynamic";
+
 const schema = z.object({
   showOnline: z.boolean().optional(),
   showLastSeen: z.boolean().optional(),

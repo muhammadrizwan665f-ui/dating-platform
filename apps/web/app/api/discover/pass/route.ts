@@ -3,6 +3,8 @@ import { z } from "zod";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { prisma } from "@/lib/db/prisma";
 
+export const dynamic = "force-dynamic";
+
 const schema = z.object({ toUserId: z.string().cuid() });
 
 /**

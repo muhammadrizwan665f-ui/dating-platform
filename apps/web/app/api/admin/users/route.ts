@@ -4,6 +4,8 @@ import { prisma } from "@/lib/db/prisma";
 import { requireRole } from "@/lib/auth/session";
 import { ROLES } from "@dating-platform/shared";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   const admin = await requireRole(req, [ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.MODERATOR]);
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });

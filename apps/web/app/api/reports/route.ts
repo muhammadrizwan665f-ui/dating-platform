@@ -3,6 +3,8 @@ import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentUserId } from "@/lib/auth/session";
 
+export const dynamic = "force-dynamic";
+
 const schema = z.object({
   targetType: z.enum(["PROFILE", "POST", "COMMENT", "MESSAGE", "USER"]),
   targetId: z.string().min(1),

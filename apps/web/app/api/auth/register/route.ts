@@ -5,6 +5,8 @@ import { prisma } from "@/lib/db/prisma";
 import { assertOfMinimumAge, UnderageError } from "@/lib/age";
 import { USER_STATUS, PROFILE_STATUS } from "@dating-platform/shared";
 
+export const dynamic = "force-dynamic";
+
 const registerSchema = z.object({
   firstName: z.string().min(1).max(50),
   displayName: z.string().min(2).max(30),

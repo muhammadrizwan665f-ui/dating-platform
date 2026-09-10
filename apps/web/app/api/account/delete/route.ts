@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { PROFILE_STATUS, USER_STATUS } from "@dating-platform/shared";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   const userId = await getCurrentUserId(req);
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
