@@ -38,6 +38,17 @@ async function main() {
     },
   });
 
+  // Boost plans — admin can edit price/duration/status from Admin > Boosts.
+  const boostSeeds = [
+    { id: "seed-boost-30m", name: "30 Minute Boost", durationMinutes: 30, price: 99 },
+    { id: "seed-boost-1h", name: "1 Hour Boost", durationMinutes: 60, price: 149 },
+    { id: "seed-boost-3h", name: "3 Hour Boost", durationMinutes: 180, price: 299 },
+    { id: "seed-boost-24h", name: "24 Hour Boost", durationMinutes: 1440, price: 799 },
+  ];
+  for (const b of boostSeeds) {
+    await prisma.boostPlan.upsert({ where: { id: b.id }, update: {}, create: b });
+  }
+
   await prisma.paymentMethod.upsert({
     where: { id: "seed-bank" },
     update: {},

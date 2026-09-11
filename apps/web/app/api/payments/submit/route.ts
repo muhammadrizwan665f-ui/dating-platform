@@ -7,15 +7,20 @@ import { NOTIFICATION_TYPES, PAYMENT_STATUS } from "@dating-platform/shared";
 
 export const dynamic = "force-dynamic";
 
-const submitSchema = z.object({
-  planId: z.string().cuid(),
-  methodId: z.string().cuid(),
-  amount: z.number().int().positive(),
-  txnRef: z.string().min(3).max(100),
-  paymentDate: z.coerce.date(),
-  proofUrl: z.string().url().optional(),
-  note: z.string().max(500).optional(),
-});
+const submitSchema = z
+  .object({
+    planId: z.string().cuid().optional(),
+    boostPlanId: z.string().cuid().optional(),
+    methodId: z.string().cuid(),
+    amount: z.number().int().positive(),
+    txnRef: z.string().min(3).max(100),
+    paymentDate: z.coerce.date(),
+    proofUrl: z.string().url().optional(),
+    note: z.string().max(500).optional(),
+  })
+  .refine((d) => !!d.planId !== !!d.boostPlanId, {
+    message: "Provide exactly one of planId or boostPlanId",
+  });
 
 export async function POST(req: NextRequest) {
   const userId = await getCurrentUserId(req);

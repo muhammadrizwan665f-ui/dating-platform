@@ -40,18 +40,27 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     });
 
     if (parsed.data.action === "APPROVE") {
-      const plan = await tx.membershipPlan.findUniqueOrThrow({ where: { id: p.planId } });
-      const startDate = new Date();
-      const endDate = new Date(startDate.getTime() + plan.durationDays * 86400000);
-      await tx.subscription.create({
-        data: {
-          userId: p.userId,
-          planId: p.planId,
-          status: SUBSCRIPTION_STATUS.ACTIVE,
-          startDate,
-          endDate,
-        },
-      });
+      if (p.planId) {
+        const plan = await tx.membershipPlan.findUniqueOrThrow({ where: { id: p.planId } });
+        const startDate = new Date();
+        const endDate = new Date(startDate.getTime() + plan.durationDays * 86400000);
+        await tx.subscription.create({
+          data: {
+            userId: p.userId,
+            planId: p.planId,
+            status: SUBSCRIPTION_STATUS.ACTIVE,
+            startDate,
+            endDate,
+          },
+        });
+      } else if (p.boostPlanId) {
+        const boostPlan = await tx.boostPlan.findUniqueOrThrow({ where: { id: p.boostPlanId } });
+        const startsAt = new Date();
+        const endsAt = new Date(startsAt.getTime() + boostPlan.durationMinutes * 60000);
+        await tx.boost.create({
+          data: { userId: p.userId, startsAt, endsAt, multiplier: 1.5 },
+        });
+      }
     }
 
     await tx.auditLog.create({

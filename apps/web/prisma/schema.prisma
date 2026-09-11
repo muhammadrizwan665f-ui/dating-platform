@@ -299,6 +299,19 @@ model MembershipPlan {
   payments      Payment[]
 }
 
+// Admin-configurable boost offerings (spec §21): price + duration + status,
+// separate from membership plans since a boost is a one-off visibility bump,
+// not a recurring tier.
+model BoostPlan {
+  id              String   @id @default(cuid())
+  name            String
+  durationMinutes Int
+  price           Int
+  isActive        Boolean  @default(true)
+
+  payments Payment[]
+}
+
 model Subscription {
   id        String             @id @default(cuid())
   userId    String
@@ -324,8 +337,10 @@ model Payment {
   id              String        @id @default(cuid())
   userId          String
   user            User          @relation(fields: [userId], references: [id])
-  planId          String
-  plan            MembershipPlan @relation(fields: [planId], references: [id])
+  planId          String?
+  plan            MembershipPlan? @relation(fields: [planId], references: [id])
+  boostPlanId     String?
+  boostPlan       BoostPlan?    @relation(fields: [boostPlanId], references: [id])
   methodId        String
   method          PaymentMethod @relation(fields: [methodId], references: [id])
   amount          Int
