@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 type DemoProfile = {
   id: string;
@@ -17,6 +17,10 @@ export default function AdminDemoProfilesPage() {
   const [total, setTotal] = useState(0);
   const [profiles, setProfiles] = useState<DemoProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [csvText, setCsvText] = useState("");
+  const [csvPreview, setCsvPreview] = useState<any>(null);
+  const [importing, setImporting] = useState(false);
 
   const load = () => {
     fetch("/api/admin/demo-profiles")
@@ -53,6 +57,46 @@ export default function AdminDemoProfilesPage() {
       load();
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result || "");
+      setCsvText(text);
+      previewCsv(text);
+    };
+    reader.readAsText(file);
+  };
+
+  const previewCsv = async (text: string) => {
+    const res = await fetch("/api/admin/demo-profiles/import-csv", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ csv: text, dryRun: true }),
+    });
+    setCsvPreview(await res.json());
+  };
+
+  const confirmImport = async () => {
+    setImporting(true);
+    try {
+      const res = await fetch("/api/admin/demo-profiles/import-csv", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ csv: csvText, dryRun: false }),
+      });
+      const data = await res.json();
+      alert(`Imported ${data.successCount} of ${data.totalRows} rows.${data.failedCount ? ` ${data.failedCount} failed.` : ""}`);
+      setCsvPreview(null);
+      setCsvText("");
+      if (fileRef.current) fileRef.current.value = "";
+      load();
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -94,6 +138,39 @@ export default function AdminDemoProfilesPage() {
             {generating ? "Generating…" : "Generate"}
           </button>
         </div>
+      </div>
+
+      <div className="surface-card p-5 mb-6">
+        <p className="text-sm font-medium mb-1">Bulk import via CSV</p>
+        <p className="text-xs text-ink/50 mb-3">
+          Columns: name, age, gender, city, bio, interests, relationship_intention, profile_photo, status
+        </p>
+        <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={handleFile} className="text-xs" />
+        {csvPreview && (
+          <div className="mt-4">
+            {csvPreview.error ? (
+              <p className="text-xs text-danger">{csvPreview.error}</p>
+            ) : (
+              <>
+                <p className="text-xs text-ink/60 mb-2">
+                  {csvPreview.totalRows} rows found — {csvPreview.successCount} valid, {csvPreview.failedCount} with errors.
+                </p>
+                {csvPreview.errors?.length > 0 && (
+                  <ul className="text-xs text-danger mb-2 list-disc pl-4">
+                    {csvPreview.errors.map((e: string, i: number) => <li key={i}>{e}</li>)}
+                  </ul>
+                )}
+                <button
+                  onClick={confirmImport}
+                  disabled={importing || csvPreview.successCount === 0}
+                  className="rounded-lg bg-rose-500 text-white px-4 py-2 text-xs font-medium disabled:opacity-50"
+                >
+                  {importing ? "Importing…" : `Import ${csvPreview.successCount} profiles`}
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between mb-3">
