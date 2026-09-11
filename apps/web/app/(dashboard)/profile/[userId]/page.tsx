@@ -31,6 +31,8 @@ export default function ProfileDetailPage() {
   const [activePhoto, setActivePhoto] = useState(0);
   const [liking, setLiking] = useState(false);
   const [requestingWA, setRequestingWA] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+  const [connectSent, setConnectSent] = useState(false);
 
   useEffect(() => {
     fetch(`/api/profile/${userId}`)
@@ -67,6 +69,20 @@ export default function ProfileDetailPage() {
       setProfile((p) => (p ? { ...p, whatsappStatus: "PENDING" } : p));
     } finally {
       setRequestingWA(false);
+    }
+  };
+
+  const sendConnectRequest = async () => {
+    setConnecting(true);
+    try {
+      await fetch("/api/connections/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ addresseeId: userId }),
+      });
+      setConnectSent(true);
+    } finally {
+      setConnecting(false);
     }
   };
 
@@ -151,6 +167,10 @@ export default function ProfileDetailPage() {
           <div className="space-y-2 pt-2">
             <Button className="w-full" loading={liking} disabled={profile.alreadyLiked} onClick={like}>
               {profile.alreadyLiked ? "Liked ❤" : "Like ❤"}
+            </Button>
+
+            <Button variant="ghost" className="w-full" loading={connecting} disabled={connectSent} onClick={sendConnectRequest}>
+              {connectSent ? "Connection request sent" : "Send Connection Request"}
             </Button>
 
             {profile.whatsappStatus === "ACCEPTED" ? (

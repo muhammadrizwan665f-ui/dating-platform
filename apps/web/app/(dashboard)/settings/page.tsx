@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "../../../components/ui/Button";
 import { Modal } from "../../../components/ui/primitives";
 import { BottomNavigation } from "../../../components/layout/Navigation";
@@ -48,6 +49,14 @@ export default function SettingsPage() {
           <input type="checkbox" checked={hideProfile} onChange={(e) => setHideProfile(e.target.checked)} />
         </label>
         <Button size="sm" onClick={savePrivacy}>Save</Button>
+      </div>
+
+      <div className="surface-card p-5 space-y-2">
+        <p className="text-sm font-medium mb-1">Quick links</p>
+        <Link href="/membership" className="block text-sm text-ink/70">💎 Membership Plans</Link>
+        <Link href="/boost" className="block text-sm text-ink/70">🚀 Boost my profile</Link>
+        <Link href="/whatsapp-requests" className="block text-sm text-ink/70">📱 WhatsApp Requests</Link>
+        <Link href="/connections" className="block text-sm text-ink/70">🤝 Connections</Link>
       </div>
 
       <div className="surface-card p-5">
