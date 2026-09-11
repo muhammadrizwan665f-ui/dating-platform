@@ -48,40 +48,59 @@ export async function PATCH(req: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   const { photoKey, submit, preferences, ...profileFields } = parsed.data;
 
-  const profile = await prisma.profile.findUniqueOrThrow({ where: { userId } });
+  try {
+    const profile = await prisma.profile.findUniqueOrThrow({ where: { userId } });
 
-  if (photoKey) {
-    const existingCount = await prisma.profilePhoto.count({ where: { profileId: profile.id } });
-    await prisma.profilePhoto.create({
+    if (photoKey) {
+      const existingCount = await prisma.profilePhoto.count({ where: { profileId: profile.id } });
+      await prisma.profilePhoto.create({
+        data: {
+          profileId: profile.id,
+          url: publicUrlFor(photoKey),
+          position: existingCount,
+          isPrimary: existingCount === 0,
+        },
+      });
+    }
+
+    if (preferences) {
+      // UserPreference is never created at registration time, so the first
+      // time someone sets preferences (e.g. during onboarding) there is no
+      // row yet — .update() would throw. upsert() handles both cases. A
+      // sensible opposite-gender default is used for the required
+      // interestedIn field until a dedicated preferences UI lets them change it.
+      await prisma.userPreference.upsert({
+        where: { userId },
+        update: preferences,
+        create: {
+          userId,
+          ageMin: preferences.ageMin,
+          ageMax: preferences.ageMax,
+          interestedIn: profile.gender === "MALE" ? "FEMALE" : "MALE",
+        },
+      });
+    }
+
+    const photoCount = await prisma.profilePhoto.count({ where: { profileId: profile.id } });
+    const completeness = calcCompleteness({
+      bio: profileFields.bio ?? profile.bio,
+      interests: profileFields.interests ?? profile.interests,
+      hasPhoto: photoCount > 0,
+    });
+
+    const updated = await prisma.profile.update({
+      where: { userId },
       data: {
-        profileId: profile.id,
-        url: publicUrlFor(photoKey),
-        position: existingCount,
-        isPrimary: existingCount === 0,
+        ...profileFields,
+        completeness,
+        // A submission only moves DRAFT -> SUBMITTED; it never skips admin review.
+        status: submit && profile.status === PROFILE_STATUS.DRAFT ? PROFILE_STATUS.SUBMITTED : profile.status,
       },
     });
+
+    return NextResponse.json({ profile: updated });
+  } catch (err: any) {
+    console.error("[PATCH /api/profile] failed:", err);
+    return NextResponse.json({ error: err.message || "Failed to update profile" }, { status: 500 });
   }
-
-  if (preferences) {
-    await prisma.userPreference.update({ where: { userId }, data: preferences });
-  }
-
-  const photoCount = await prisma.profilePhoto.count({ where: { profileId: profile.id } });
-  const completeness = calcCompleteness({
-    bio: profileFields.bio ?? profile.bio,
-    interests: profileFields.interests ?? profile.interests,
-    hasPhoto: photoCount > 0,
-  });
-
-  const updated = await prisma.profile.update({
-    where: { userId },
-    data: {
-      ...profileFields,
-      completeness,
-      // A submission only moves DRAFT -> SUBMITTED; it never skips admin review.
-      status: submit && profile.status === PROFILE_STATUS.DRAFT ? PROFILE_STATUS.SUBMITTED : profile.status,
-    },
-  });
-
-  return NextResponse.json({ profile: updated });
 }
