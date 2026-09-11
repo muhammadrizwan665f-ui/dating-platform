@@ -9,7 +9,7 @@ const items = [
   { href: "/matches", label: "Matches", icon: "❤" },
   { href: "/messages", label: "Messages", icon: "💬" },
   { href: "/notifications", label: "Alerts", icon: "🔔" },
-  { href: "/profile", label: "Profile", icon: "👤" },
+  { href: "/profile/edit", label: "Profile", icon: "👤" },
 ];
 
 export function BottomNavigation() {
