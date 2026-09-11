@@ -369,11 +369,9 @@ model Block {
   @@unique([blockerId, blockedId])
 }
 
-/**
- * A user's WhatsApp number is never shared automatically. The requester can
- * only see it after the target explicitly ACCEPTs, and the target can revoke
- * future sharing at any time by declining/removing consent.
- */
+// A user's WhatsApp number is never shared automatically. The requester can
+// only see it after the target explicitly ACCEPTs, and the target can revoke
+// future sharing at any time by declining/removing consent.
 model WhatsappRequest {
   id          String   @id @default(cuid())
   requesterId String
