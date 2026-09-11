@@ -37,6 +37,28 @@ export async function getUploadUrl(contentType: string, sizeBytes: number, prefi
   return { uploadUrl: url, key };
 }
 
+/**
+ * Uploads a file's bytes directly from server-side code (no browser-to-R2
+ * hop, so no R2 bucket CORS configuration is required). Preferred over
+ * getUploadUrl()'s direct-PUT flow for this app since we don't control
+ * whether the R2 bucket has CORS enabled for this origin.
+ */
+export async function uploadBuffer(buffer: Buffer, contentType: string, prefix: string) {
+  if (!ALLOWED_MIME.has(contentType)) throw new UnsupportedFileTypeError(contentType);
+  if (buffer.byteLength > MAX_BYTES) throw new FileTooLargeError(String(buffer.byteLength));
+
+  const key = `${prefix}/${randomUUID()}`;
+  await client.send(
+    new PutObjectCommand({
+      Bucket: process.env.STORAGE_BUCKET,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+    })
+  );
+  return { key };
+}
+
 export function publicUrlFor(key: string) {
   return `${process.env.STORAGE_PUBLIC_BASE}/${key}`;
 }

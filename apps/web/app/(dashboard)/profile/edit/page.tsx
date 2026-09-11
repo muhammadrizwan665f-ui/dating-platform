@@ -26,6 +26,7 @@ export default function EditProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/profile")
@@ -61,21 +62,25 @@ export default function EditProfilePage() {
 
   const save = async () => {
     setSaving(true);
+    setSaveError(null);
     try {
       let photoKey: string | null = null;
       if (photoFile) {
         setUploading(true);
-        const presign = await fetch("/api/profile/photos/presign", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contentType: photoFile.type, sizeBytes: photoFile.size }),
-        }).then((r) => r.json());
-        await fetch(presign.uploadUrl, { method: "PUT", body: photoFile, headers: { "Content-Type": photoFile.type } });
-        photoKey = presign.key;
+        const formData = new FormData();
+        formData.append("file", photoFile);
+        const uploadRes = await fetch("/api/profile/photos/upload", { method: "POST", body: formData });
+        const uploadData = await uploadRes.json();
         setUploading(false);
+        if (!uploadRes.ok) {
+          setSaveError(uploadData.error || "Photo upload failed. Please try a different photo.");
+          setSaving(false);
+          return;
+        }
+        photoKey = uploadData.key;
       }
 
-      await fetch("/api/profile", {
+      const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -89,9 +94,19 @@ export default function EditProfilePage() {
           submit: true,
         }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setSaveError(data.error ? JSON.stringify(data.error) : "Couldn't save your profile. Please try again.");
+        setSaving(false);
+        return;
+      }
       setPhotoFile(null);
       setSaved(true);
+      // Refresh so the new photo actually shows up in the gallery above.
+      fetch("/api/profile").then((r) => r.json()).then((d) => d.profile && setProfile(d.profile));
       setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setSaveError("Something went wrong. Please check your connection and try again.");
     } finally {
       setSaving(false);
     }
@@ -168,6 +183,7 @@ export default function EditProfilePage() {
           </div>
         </div>
 
+        {saveError && <p className="text-sm text-danger bg-danger/10 rounded-lg px-3 py-2">{saveError}</p>}
         <Button className="w-full" loading={saving || uploading} onClick={save}>
           {saved ? "Saved ✓" : "Save Profile"}
         </Button>

@@ -10,6 +10,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [profile, setProfile] = useState({
     bio: "",
     interests: [] as string[],
@@ -44,21 +45,26 @@ export default function OnboardingPage() {
 
   async function submitForApproval() {
     setSaving(true);
+    setUploadError(null);
     try {
-      // 1. Upload photo (if selected) via presigned URL flow.
+      // 1. Upload photo (if selected) via server-proxied upload — no direct
+      //    browser-to-R2 request, so no R2 CORS config needed.
       let photoKey: string | null = null;
       if (photoFile) {
-        const presign = await fetch("/api/profile/photos/presign", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contentType: photoFile.type, sizeBytes: photoFile.size }),
-        }).then((r) => r.json());
-        await fetch(presign.uploadUrl, { method: "PUT", body: photoFile, headers: { "Content-Type": photoFile.type } });
-        photoKey = presign.key;
+        const formData = new FormData();
+        formData.append("file", photoFile);
+        const uploadRes = await fetch("/api/profile/photos/upload", { method: "POST", body: formData });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          setUploadError(uploadData.error || "Photo upload failed. Please try a different photo.");
+          setSaving(false);
+          return;
+        }
+        photoKey = uploadData.key;
       }
 
       // 2. Save profile fields + submit for review.
-      await fetch("/api/profile", {
+      const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -70,9 +76,16 @@ export default function OnboardingPage() {
           submit: true,
         }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setUploadError(data.error ? JSON.stringify(data.error) : "Couldn't submit your profile. Please try again.");
+        setSaving(false);
+        return;
+      }
 
       router.push("/membership");
-    } finally {
+    } catch (err) {
+      setUploadError("Something went wrong. Please check your connection and try again.");
       setSaving(false);
     }
   }
@@ -188,6 +201,9 @@ export default function OnboardingPage() {
           {step === 7 && (
             <div className="space-y-3 text-sm">
               <p>Ready to submit your profile for admin review. You&apos;ll be notified once it&apos;s approved.</p>
+              {uploadError && (
+                <p className="text-sm text-danger bg-danger/10 rounded-lg px-3 py-2">{uploadError}</p>
+              )}
             </div>
           )}
         </div>

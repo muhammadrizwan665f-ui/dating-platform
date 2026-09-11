@@ -9,50 +9,69 @@ export default function AdminPaymentMethodsPage() {
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [newName, setNewName] = useState("");
   const [saving, setSaving] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = () => {
     fetch("/api/admin/payment-methods")
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.error || `Failed to load (${r.status})`);
+        return r.json();
+      })
       .then((d) => setMethods(d.methods ?? []))
+      .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   };
   useEffect(load, []);
 
+  async function callApi(body: any) {
+    const res = await fetch("/api/admin/payment-methods", {
+      method: body.name && !body.id ? "POST" : "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error ? JSON.stringify(data.error) : `Request failed (${res.status})`);
+    return data;
+  }
+
   const save = async (m: Method) => {
     setSaving(m.id);
+    setError(null);
     try {
-      await fetch("/api/admin/payment-methods", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: m.id, instructions: editing[m.id] ?? m.instructions }),
-      });
+      await callApi({ id: m.id, instructions: editing[m.id] ?? m.instructions });
       load();
+    } catch (e: any) {
+      setError(e.message);
     } finally {
       setSaving(null);
     }
   };
 
   const toggleActive = async (m: Method) => {
-    await fetch("/api/admin/payment-methods", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: m.id, isActive: !m.isActive }),
-    });
-    load();
+    setError(null);
+    try {
+      await callApi({ id: m.id, isActive: !m.isActive });
+      load();
+    } catch (e: any) {
+      setError(e.message);
+    }
   };
 
   const addMethod = async () => {
     if (!newName.trim()) return;
-    await fetch("/api/admin/payment-methods", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newName.trim(), instructions: "Add account details here." }),
-    });
-    setNewName("");
-    load();
+    setAdding(true);
+    setError(null);
+    try {
+      await callApi({ name: newName.trim(), instructions: "Add account details here." });
+      setNewName("");
+      load();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setAdding(false);
+    }
   };
-
-  if (loading) return <p className="text-sm text-ink/50">Loading…</p>;
 
   return (
     <div className="max-w-2xl">
@@ -61,39 +80,65 @@ export default function AdminPaymentMethodsPage() {
         Set real account numbers / titles here — customers see exactly this text when submitting a manual payment.
       </p>
 
-      <div className="flex gap-2 mb-6">
-        <input
-          placeholder="New payment method name (e.g. Bank Alfalah)"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          className="flex-1 rounded-lg border border-black/10 px-3 py-2 text-sm"
-        />
-        <button onClick={addMethod} className="rounded-lg bg-rose-500 text-white px-4 py-2 text-sm font-medium">Add</button>
+      {error && (
+        <div className="mb-4 rounded-xl bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">
+          {error}
+        </div>
+      )}
+
+      <div className="surface-card p-5 mb-6">
+        <p className="text-sm font-medium mb-3">Add a payment method</p>
+        <div className="flex gap-2">
+          <input
+            placeholder="e.g. Bank Alfalah, JazzCash, EasyPaisa"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addMethod()}
+            className="flex-1 rounded-xl border border-black/10 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
+          />
+          <button
+            onClick={addMethod}
+            disabled={adding || !newName.trim()}
+            className="rounded-xl bg-rose-500 text-white px-5 py-2.5 text-sm font-medium disabled:opacity-40 hover:bg-rose-600 transition-colors"
+          >
+            {adding ? "Adding…" : "+ Add"}
+          </button>
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {methods.map((m) => (
-          <div key={m.id} className="surface-card p-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium">{m.name}</p>
-              <label className="flex items-center gap-1.5 text-xs">
-                <input type="checkbox" checked={m.isActive} onChange={() => toggleActive(m)} />
-                Active
-              </label>
+      {loading ? (
+        <p className="text-sm text-ink/50">Loading…</p>
+      ) : methods.length === 0 ? (
+        <p className="text-sm text-ink/40 surface-card p-6 text-center">No payment methods yet — add one above.</p>
+      ) : (
+        <div className="space-y-4">
+          {methods.map((m) => (
+            <div key={m.id} className="surface-card p-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-semibold">{m.name}</p>
+                <label className="flex items-center gap-2 text-xs">
+                  <span className={m.isActive ? "text-success" : "text-ink/40"}>{m.isActive ? "Active" : "Inactive"}</span>
+                  <input type="checkbox" checked={m.isActive} onChange={() => toggleActive(m)} />
+                </label>
+              </div>
+              <textarea
+                defaultValue={m.instructions}
+                onChange={(e) => setEditing((s) => ({ ...s, [m.id]: e.target.value }))}
+                rows={3}
+                className="w-full rounded-xl border border-black/10 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
+                placeholder="Account title, account number, bank name, IBAN..."
+              />
+              <button
+                onClick={() => save(m)}
+                disabled={saving === m.id}
+                className="mt-3 rounded-lg bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 text-xs font-medium disabled:opacity-40"
+              >
+                {saving === m.id ? "Saving…" : "Save Changes"}
+              </button>
             </div>
-            <textarea
-              defaultValue={m.instructions}
-              onChange={(e) => setEditing({ ...editing, [m.id]: e.target.value })}
-              rows={3}
-              className="w-full rounded-lg border border-black/10 px-3 py-2 text-xs"
-              placeholder="Account title, account number, bank name, IBAN..."
-            />
-            <button onClick={() => save(m)} disabled={saving === m.id} className="mt-2 text-xs font-medium text-plum-600 disabled:opacity-50">
-              {saving === m.id ? "Saving…" : "Save"}
-            </button>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
