@@ -53,6 +53,7 @@ export default function SettingsPage() {
 
       <div className="surface-card p-5 space-y-2">
         <p className="text-sm font-medium mb-1">Quick links</p>
+        <Link href="/likes" className="block text-sm text-ink/70">💌 My Likes</Link>
         <Link href="/membership" className="block text-sm text-ink/70">💎 Membership Plans</Link>
         <Link href="/boost" className="block text-sm text-ink/70">🚀 Boost my profile</Link>
         <Link href="/whatsapp-requests" className="block text-sm text-ink/70">📱 WhatsApp Requests</Link>
