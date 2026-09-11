@@ -1,12 +1,13 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +23,10 @@ export default function LoginPage() {
       setError("Invalid email/phone or password.");
       return;
     }
-    router.push("/dashboard");
+    // If we were bounced here from a protected page (e.g. /admin), go back
+    // there instead of always landing on /dashboard.
+    const next = searchParams.get("next");
+    router.push(next && next.startsWith("/") ? next : "/dashboard");
   }
 
   return (
@@ -40,5 +44,13 @@ export default function LoginPage() {
         </p>
       </form>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

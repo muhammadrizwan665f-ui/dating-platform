@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "../../../components/ui/Button";
 import { Modal } from "../../../components/ui/primitives";
@@ -9,6 +10,8 @@ import { ThemePicker } from "../../../components/settings/ThemePicker";
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAdmin = ["ADMIN", "SUPER_ADMIN", "MODERATOR"].includes((session?.user as any)?.role);
   const [showOnline, setShowOnline] = useState(true);
   const [showLastSeen, setShowLastSeen] = useState(true);
   const [hideProfile, setHideProfile] = useState(false);
@@ -57,6 +60,9 @@ export default function SettingsPage() {
         <Link href="/membership" className="block text-sm text-ink/70">💎 Membership Plans</Link>
         <Link href="/boost" className="block text-sm text-ink/70">🚀 Boost my profile</Link>
         <Link href="/whatsapp-requests" className="block text-sm text-ink/70">📱 WhatsApp Requests</Link>
+        {isAdmin && (
+          <Link href="/admin" className="block text-sm font-medium text-rose-500">🛡️ Admin Panel</Link>
+        )}
         <Link href="/connections" className="block text-sm text-ink/70">🤝 Connections</Link>
       </div>
 
