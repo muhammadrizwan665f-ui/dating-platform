@@ -20,14 +20,17 @@ export default function MessagesPage() {
       .then((r) => r.json())
       .then((d) => setConversations(d.conversations ?? []));
 
-    // Realtime connection to the sidecar server (see apps/realtime). The JWT
-    // here is the same NextAuth session token, verified server-side on connect.
-    fetch("/api/auth/session")
-      .then((r) => r.json())
-      .then((session) => {
+    // Realtime connection to the sidecar server (see apps/realtime). We mint
+    // a small dedicated token (see /api/realtime-token) rather than trying
+    // to hand over NextAuth's own encrypted session cookie, which the
+    // realtime server can't verify directly.
+    Promise.all([
+      fetch("/api/auth/session").then((r) => r.json()),
+      fetch("/api/realtime-token").then((r) => r.json()),
+    ]).then(([session, tokenRes]) => {
         setMeId(session?.user?.id ?? "");
         const socket = io(process.env.NEXT_PUBLIC_REALTIME_URL ?? "http://localhost:4001", {
-          auth: { token: session?.accessToken },
+          auth: { token: tokenRes?.token },
         });
         socket.on("message:new", ({ conversationId, message }) => {
           if (conversationId === activeId) setMessages((prev) => [...prev, message]);
