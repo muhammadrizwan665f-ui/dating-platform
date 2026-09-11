@@ -60,6 +60,29 @@ export default function AdminSettingsPage() {
           <input type="checkbox" checked={settings.auto_approve_photos === "true"} onChange={(e) => set("auto_approve_photos", String(e.target.checked))} />
         </label>
 
+        <div className="pt-3 border-t border-black/5">
+          <p className="text-sm font-medium mb-2">Homepage Community Stats</p>
+          <p className="text-xs text-ink/50 mb-3">Shown on the public homepage — set real numbers as your community grows.</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-ink/50 mb-1">Active Users</label>
+              <input value={settings.stat_active_users} onChange={(e) => set("stat_active_users", e.target.value)} placeholder="e.g. 500+" className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs text-ink/50 mb-1">Daily Matches</label>
+              <input value={settings.stat_daily_matches} onChange={(e) => set("stat_daily_matches", e.target.value)} placeholder="e.g. 50+" className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs text-ink/50 mb-1">Messages Sent</label>
+              <input value={settings.stat_messages_sent} onChange={(e) => set("stat_messages_sent", e.target.value)} placeholder="e.g. 2K+" className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs text-ink/50 mb-1">User Satisfaction</label>
+              <input value={settings.stat_satisfaction} onChange={(e) => set("stat_satisfaction", e.target.value)} placeholder="e.g. 4.8/5" className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm" />
+            </div>
+          </div>
+        </div>
+
         <button onClick={save} disabled={saving} className="rounded-lg bg-rose-500 text-white px-5 py-2 text-sm font-medium disabled:opacity-50">
           {saving ? "Saving…" : saved ? "Saved ✓" : "Save Settings"}
         </button>

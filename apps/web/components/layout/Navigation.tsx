@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
@@ -37,28 +38,69 @@ export function BottomNavigation() {
 }
 
 export function Navbar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const links = [
+    ["/", "Home"],
+    ["/how-it-works", "How It Works"],
+    ["/safety", "Safety"],
+    ["/pricing", "Pricing"],
+    ["/themes", "Themes"],
+    ["/contact", "Contact"],
+  ] as const;
+
   return (
-    <header className="hidden sm:flex items-center justify-between px-8 py-4 border-b border-black/5 bg-white/80 backdrop-blur sticky top-0 z-30">
-      <Link href="/" className="font-display text-xl font-semibold text-rose-500">
-        DilMil
-      </Link>
-      <nav className="flex items-center gap-6 text-sm font-medium text-ink/70">
-        <Link href="/discover">Discover</Link>
-        <Link href="/how-it-works">How It Works</Link>
-        <Link href="/safety">Safety</Link>
-        <Link href="/pricing">Pricing</Link>
-      </nav>
-      <div className="flex items-center gap-3">
-        <Link href="/login" className="text-sm font-medium text-ink/70">
-          Login
+    <header className="sticky top-0 z-30 bg-base/80 backdrop-blur-md border-b border-black/5">
+      <div className="flex items-center justify-between px-5 sm:px-8 py-4 max-w-6xl mx-auto">
+        <Link href="/" className="flex items-center gap-1.5 font-display text-xl font-semibold text-rose-500">
+          <span aria-hidden>💗</span> DilMil
         </Link>
-        <Link
-          href="/register"
-          className="text-sm font-medium bg-rose-500 text-white rounded-xl px-4 py-2 hover:bg-rose-600"
+
+        <nav className="hidden lg:flex items-center gap-7 text-sm font-medium text-ink/60">
+          {links.map(([href, label]) => (
+            <Link key={href} href={href} className="hover:text-rose-500 transition-colors">
+              {label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="hidden sm:flex items-center gap-3">
+          <Link href="/login" className="text-sm font-medium text-ink/70 hover:text-rose-500 transition-colors">
+            Login
+          </Link>
+          <Link
+            href="/register"
+            className="text-sm font-semibold bg-rose-500 text-white rounded-xl px-5 py-2.5 hover:bg-rose-600 transition-colors shadow-sm"
+          >
+            Create Account
+          </Link>
+        </div>
+
+        <button
+          aria-label="Toggle menu"
+          onClick={() => setMobileOpen((v) => !v)}
+          className="lg:hidden sm:hidden text-2xl text-ink/70 px-1"
         >
-          Create Account
-        </Link>
+          {mobileOpen ? "✕" : "☰"}
+        </button>
       </div>
+
+      {mobileOpen && (
+        <div className="sm:hidden border-t border-black/5 bg-base px-5 py-4 space-y-3">
+          {links.map(([href, label]) => (
+            <Link key={href} href={href} onClick={() => setMobileOpen(false)} className="block text-sm font-medium text-ink/70">
+              {label}
+            </Link>
+          ))}
+          <div className="flex gap-3 pt-2 border-t border-black/5">
+            <Link href="/login" onClick={() => setMobileOpen(false)} className="flex-1 text-center text-sm font-medium border border-black/10 rounded-xl py-2.5">
+              Login
+            </Link>
+            <Link href="/register" onClick={() => setMobileOpen(false)} className="flex-1 text-center text-sm font-semibold bg-rose-500 text-white rounded-xl py-2.5">
+              Create Account
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

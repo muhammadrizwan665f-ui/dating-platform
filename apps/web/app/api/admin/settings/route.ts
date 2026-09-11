@@ -12,6 +12,10 @@ const KNOWN_KEYS = [
   "min_age_enforced",
   "profile_review_required",
   "auto_approve_photos",
+  "stat_active_users",
+  "stat_daily_matches",
+  "stat_messages_sent",
+  "stat_satisfaction",
 ];
 
 export async function GET(req: NextRequest) {
