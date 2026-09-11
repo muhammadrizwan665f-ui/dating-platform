@@ -369,6 +369,22 @@ model Block {
   @@unique([blockerId, blockedId])
 }
 
+/**
+ * A user's WhatsApp number is never shared automatically. The requester can
+ * only see it after the target explicitly ACCEPTs, and the target can revoke
+ * future sharing at any time by declining/removing consent.
+ */
+model WhatsappRequest {
+  id          String   @id @default(cuid())
+  requesterId String
+  targetId    String
+  status      String   @default("PENDING") // PENDING | ACCEPTED | DECLINED | REVOKED
+  createdAt   DateTime @default(now())
+  respondedAt DateTime?
+
+  @@unique([requesterId, targetId])
+}
+
 model Boost {
   id         String   @id @default(cuid())
   userId     String
