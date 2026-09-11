@@ -11,11 +11,28 @@ export async function GET(req: NextRequest) {
   const userId = await getCurrentUserId(req);
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const profile = await prisma.profile.findUnique({
+  let profile = await prisma.profile.findUnique({
     where: { userId },
     include: { photos: { orderBy: { position: "asc" } } },
   });
-  if (!profile) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  if (!profile) {
+    // Defensive: same auto-heal as PATCH below — should never happen for a
+    // normally-registered account, but never leave the user stuck either.
+    const created = await prisma.profile.create({
+      data: {
+        userId,
+        displayName: "New User",
+        dob: new Date(new Date().setFullYear(new Date().getFullYear() - 18)),
+        gender: "MALE",
+        city: "Unknown",
+        status: PROFILE_STATUS.DRAFT,
+      },
+    });
+    console.error(`[GET /api/profile] Profile was missing for user ${userId} — auto-created a placeholder.`);
+    profile = { ...created, photos: [] };
+  }
+
   return NextResponse.json({ profile });
 }
 
@@ -49,7 +66,24 @@ export async function PATCH(req: NextRequest) {
   const { photoKey, submit, preferences, ...profileFields } = parsed.data;
 
   try {
-    const profile = await prisma.profile.findUniqueOrThrow({ where: { userId } });
+    // Defensive: this should always exist (registration creates it), but if
+    // it's ever missing for any reason, auto-create a minimal DRAFT profile
+    // instead of crashing — the user can fill in the real details below.
+    let profile = await prisma.profile.findUnique({ where: { userId } });
+    if (!profile) {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      profile = await prisma.profile.create({
+        data: {
+          userId,
+          displayName: "New User",
+          dob: new Date(new Date().setFullYear(new Date().getFullYear() - 18)),
+          gender: "MALE",
+          city: profileFields.city || "Unknown",
+          status: PROFILE_STATUS.DRAFT,
+        },
+      });
+      console.error(`[PATCH /api/profile] Profile was missing for user ${userId} (${user?.email ?? user?.phone}) — auto-created a placeholder.`);
+    }
 
     if (photoKey) {
       const existingCount = await prisma.profilePhoto.count({ where: { profileId: profile.id } });
