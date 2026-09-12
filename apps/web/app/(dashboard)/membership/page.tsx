@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../../components/ui/Button";
 import { Input } from "../../../components/ui/Input";
-import { Badge } from "../../../components/ui/primitives";
 
 interface Plan {
   id: string;
@@ -21,6 +20,7 @@ interface Method {
 export default function MembershipPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [methods, setMethods] = useState<Method[]>([]);
+  const [currentPlanName, setCurrentPlanName] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<Method | null>(null);
   const [form, setForm] = useState({ txnRef: "", paymentDate: "", note: "" });
@@ -30,6 +30,7 @@ export default function MembershipPage() {
   useEffect(() => {
     fetch("/api/membership/plans").then((r) => r.json()).then((d) => setPlans(d.plans ?? []));
     fetch("/api/payments/methods").then((r) => r.json()).then((d) => setMethods(d.methods ?? []));
+    fetch("/api/dashboard").then((r) => r.json()).then((d) => setCurrentPlanName(d.membershipPlan ?? null));
   }, []);
 
   async function submitPayment() {
@@ -53,7 +54,7 @@ export default function MembershipPage() {
 
   if (submitted) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-6 bg-base">
+      <div className="flex items-center justify-center px-6 py-20">
         <div className="surface-card p-8 max-w-sm text-center">
           <p className="text-3xl mb-2">⏳</p>
           <h1 className="font-display text-xl font-semibold">Payment under review</h1>
@@ -61,31 +62,63 @@ export default function MembershipPage() {
             We&apos;ll notify you once our team verifies your payment. This usually takes a few hours.
           </p>
         </div>
-      </main>
+      </div>
     );
   }
 
-  return (
-    <main className="min-h-screen bg-base px-4 py-10">
-      <h1 className="font-display text-2xl font-semibold text-center mb-2">Choose your plan</h1>
-      <p className="text-center text-ink/50 mb-8 text-sm">
-        Premium plans improve your visibility in Discover — they don&apos;t guarantee matches or replies.
-      </p>
+  const styleFor = (i: number, total: number) => {
+    const isPro = i === 1 && total >= 2;
+    const isDiamond = i === total - 1 && total >= 3;
+    if (isDiamond) return "bg-[#14111A] text-white shadow-cardHover";
+    if (isPro) return "bg-plum-500 text-white shadow-cardHover scale-[1.03]";
+    return "surface-card";
+  };
 
-      <div className="grid sm:grid-cols-3 gap-4 max-w-4xl mx-auto mb-10">
-        {plans.map((plan) => (
-          <button
-            key={plan.id}
-            onClick={() => setSelectedPlan(plan)}
-            className={`surface-card p-5 text-left transition-all ${selectedPlan?.id === plan.id ? "ring-2 ring-rose-400" : ""}`}
-          >
-            {plan.badge && <Badge tone="gold">{plan.badge}</Badge>}
-            <p className="font-display text-lg font-semibold mt-2">{plan.name}</p>
-            <p className="text-2xl font-semibold mt-1">
-              Rs.{plan.price} <span className="text-sm font-normal text-ink/50">/{plan.durationDays}d</span>
-            </p>
-          </button>
-        ))}
+  return (
+    <div className="px-4 sm:px-6 py-10 max-w-5xl mx-auto">
+      <div className="rounded-3xl bg-gradient-to-br from-rose-500 to-plum-500 p-8 text-center text-white mb-10">
+        <h1 className="font-display text-2xl sm:text-3xl font-semibold">Choose Your DilMil Experience ❤️</h1>
+        <p className="text-white/80 mt-2 text-sm max-w-md mx-auto">
+          Get more visibility, discover more people and make meaningful connections.
+        </p>
+      </div>
+
+      <div className="grid sm:grid-cols-3 gap-6 mb-10">
+        {plans.map((plan, i) => {
+          const isPro = i === 1 && plans.length >= 2;
+          const isCurrent = currentPlanName === plan.name;
+          const selected = selectedPlan?.id === plan.id;
+          return (
+            <button
+              key={plan.id}
+              onClick={() => setSelectedPlan(plan)}
+              className={`relative rounded-3xl p-6 text-left transition-all ${styleFor(i, plans.length)} ${selected ? "ring-2 ring-rose-300" : ""}`}
+            >
+              {isPro && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gold-400 text-[#14111A] text-[10px] font-bold uppercase px-3 py-1 rounded-full">
+                  Most Popular
+                </span>
+              )}
+              {isCurrent && (
+                <span className="absolute -top-3 right-4 bg-success text-white text-[10px] font-bold uppercase px-3 py-1 rounded-full">
+                  Current Plan
+                </span>
+              )}
+              <p className="text-xs font-semibold uppercase tracking-wide opacity-70">{plan.badge || plan.name}</p>
+              <p className="font-display text-2xl font-semibold mt-1">{plan.name}</p>
+              <p className="text-3xl font-semibold mt-2">
+                Rs.{plan.price} <span className="text-sm font-normal opacity-60">/{plan.durationDays}d</span>
+              </p>
+              <ul className="mt-5 space-y-2 text-sm">
+                {Object.entries(plan.features || {}).map(([k, v]) => (
+                  <li key={k} className="flex items-start gap-2">
+                    <span>✓</span> <span>{k}: {String(v)}</span>
+                  </li>
+                ))}
+              </ul>
+            </button>
+          );
+        })}
       </div>
 
       {selectedPlan && (
@@ -131,6 +164,21 @@ export default function MembershipPage() {
           )}
         </div>
       )}
-    </main>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12 max-w-3xl mx-auto">
+        {[
+          ["📈", "More Matches", "Increase your chances"],
+          ["👁️", "Better Visibility", "Get noticed faster"],
+          ["🎛️", "Advanced Filters", "Find exactly what you want"],
+          ["🎧", "Priority Support", "We're here for you"],
+        ].map(([icon, title, desc]) => (
+          <div key={title} className="surface-card p-4 text-center">
+            <span className="text-xl">{icon}</span>
+            <p className="text-xs font-semibold mt-2">{title}</p>
+            <p className="text-[10px] text-ink/50 mt-0.5">{desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
