@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
@@ -10,7 +10,9 @@ export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [rejectionNote, setRejectionNote] = useState<string | null>(null);
   const [profile, setProfile] = useState({
     bio: "",
     interests: [] as string[],
@@ -21,6 +23,38 @@ export default function OnboardingPage() {
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [existingPhotoUrl, setExistingPhotoUrl] = useState<string | null>(null);
+
+  // Load whatever the user has already saved (bio/interests/photo) so
+  // coming back here — after a refresh, a rejection, or navigating away
+  // mid-flow — never shows a blank form and never asks for the same info
+  // twice. If the profile is already submitted/approved, this isn't the
+  // right place for them at all — send them to Edit Profile instead.
+  useEffect(() => {
+    fetch("/api/profile")
+      .then((r) => r.json())
+      .then((d) => {
+        const p = d.profile;
+        if (!p) return;
+
+        if (p.status === "APPROVED" || p.status === "SUBMITTED" || p.status === "UNDER_REVIEW") {
+          router.replace("/profile/edit");
+          return;
+        }
+
+        setProfile((prev) => ({
+          ...prev,
+          bio: p.bio || "",
+          interests: p.interests || [],
+          intention: p.intention || "DATING",
+        }));
+        if (p.photos?.[0]?.url) setExistingPhotoUrl(p.photos[0].url);
+        if (p.status === "REJECTED") {
+          setRejectionNote("Your previous submission needed changes. Update the details below and resubmit.");
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [router]);
 
   function next() {
     setStep((s) => Math.min(s + 1, STEP_LABELS.length - 1));
@@ -90,9 +124,16 @@ export default function OnboardingPage() {
     }
   }
 
+  if (loading) return <p className="text-center py-20 text-sm text-ink/50">Loading…</p>;
+
   return (
     <main className="min-h-screen bg-base px-6 py-10 flex flex-col items-center">
       <div className="w-full max-w-md">
+        {rejectionNote && (
+          <div className="mb-4 rounded-xl bg-gold-400/10 border border-gold-400/30 px-4 py-3 text-sm text-gold-500">
+            {rejectionNote}
+          </div>
+        )}
         <div className="flex items-center justify-between mb-6">
           <span className="text-sm font-medium text-ink/60">
             Step {step + 1} / {STEP_LABELS.length}
@@ -116,11 +157,14 @@ export default function OnboardingPage() {
           {step === 1 && (
             <div className="space-y-3">
               <p className="text-sm font-medium">Add a profile photo</p>
-              {photoPreview ? (
+              {photoPreview || existingPhotoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={photoPreview} alt="Preview" className="w-32 h-32 rounded-2xl object-cover" />
+                <img src={photoPreview || existingPhotoUrl || ""} alt="Preview" className="w-32 h-32 rounded-2xl object-cover" />
               ) : (
                 <div className="w-32 h-32 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-300 text-3xl">+</div>
+              )}
+              {existingPhotoUrl && !photoFile && (
+                <p className="text-xs text-ink/40">You already have a photo — pick a new one to replace it, or continue.</p>
               )}
               <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} />
             </div>
