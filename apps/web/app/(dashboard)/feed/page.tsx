@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PostCard, PostData } from "../../../components/feed/PostCard";
+import { CommentsModal } from "../../../components/feed/CommentsModal";
 import { EmptyState, LoadingSkeleton } from "../../../components/ui/primitives";
 import { Button } from "../../../components/ui/Button";
 
@@ -21,6 +22,10 @@ export default function FeedPage() {
   const [caption, setCaption] = useState("");
   const [posting, setPosting] = useState(false);
   const [suggested, setSuggested] = useState<Suggested[]>([]);
+  const [postImage, setPostImage] = useState<File | null>(null);
+  const [postImagePreview, setPostImagePreview] = useState<string | null>(null);
+  const [postError, setPostError] = useState<string | null>(null);
+  const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(null);
 
   function load() {
     setLoading(true);
@@ -38,17 +43,55 @@ export default function FeedPage() {
       .catch(() => {});
   }, []);
 
+  function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPostImage(file);
+    setPostImagePreview(URL.createObjectURL(file));
+  }
+
+  function removeImage() {
+    setPostImage(null);
+    setPostImagePreview(null);
+  }
+
   async function createPost() {
-    if (!caption.trim()) return;
+    if (!caption.trim() && !postImage) return;
     setPosting(true);
-    await fetch("/api/posts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ caption }),
-    });
-    setCaption("");
-    setPosting(false);
-    load();
+    setPostError(null);
+    try {
+      let imageKeys: string[] = [];
+      if (postImage) {
+        const formData = new FormData();
+        formData.append("file", postImage);
+        const uploadRes = await fetch("/api/profile/photos/upload", { method: "POST", body: formData });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          setPostError(uploadData.error || "Image upload failed.");
+          setPosting(false);
+          return;
+        }
+        imageKeys = [uploadData.url];
+      }
+      const res = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caption, imageKeys }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setPostError(data.error ? JSON.stringify(data.error) : "Couldn't publish your post.");
+        setPosting(false);
+        return;
+      }
+      setCaption("");
+      removeImage();
+      load();
+    } catch {
+      setPostError("Something went wrong. Please try again.");
+    } finally {
+      setPosting(false);
+    }
   }
 
   async function toggleLike(id: string) {
@@ -83,9 +126,25 @@ export default function FeedPage() {
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
           />
+          {postImagePreview && (
+            <div className="relative mt-2 inline-block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={postImagePreview} alt="" className="max-h-48 rounded-xl object-cover" />
+              <button
+                onClick={removeImage}
+                className="absolute top-1.5 right-1.5 bg-black/60 text-white rounded-full h-6 w-6 flex items-center justify-center text-xs"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          {postError && <p className="text-xs text-danger mt-2">{postError}</p>}
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-black/5">
-            <span className="text-xs text-ink/40">📷 Add Photo</span>
-            <Button size="sm" onClick={createPost} loading={posting} disabled={!caption.trim()}>
+            <label className="text-xs text-ink/40 cursor-pointer hover:text-rose-500 transition-colors">
+              📷 Add Photo
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageSelect} className="hidden" />
+            </label>
+            <Button size="sm" onClick={createPost} loading={posting} disabled={!caption.trim() && !postImage}>
               Post
             </Button>
           </div>
@@ -103,7 +162,7 @@ export default function FeedPage() {
         )}
 
         {posts.map((post) => (
-          <PostCard key={post.id} post={post} onToggleLike={toggleLike} onOpenComments={() => {}} />
+          <PostCard key={post.id} post={post} onToggleLike={toggleLike} onOpenComments={setActiveCommentPostId} />
         ))}
       </div>
 
@@ -141,6 +200,14 @@ export default function FeedPage() {
           </div>
         </div>
       </aside>
+
+      {activeCommentPostId && (
+        <CommentsModal
+          postId={activeCommentPostId}
+          onClose={() => setActiveCommentPostId(null)}
+          onCommentAdded={load}
+        />
+      )}
     </div>
   );
 }
