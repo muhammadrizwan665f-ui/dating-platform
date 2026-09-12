@@ -14,6 +14,7 @@ const groups: { label: string; items: [string, string][] }[] = [
       ["/admin/users", "Users"],
       ["/admin/profiles", "Profile Reviews"],
       ["/admin/demo-profiles", "Demo Profiles"],
+      ["/admin/bulk-posts", "Bulk Posts"],
       ["/admin/admins", "Admin Users"],
     ],
   },
