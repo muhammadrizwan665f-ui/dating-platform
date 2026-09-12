@@ -78,13 +78,33 @@ export default function MessagesPage() {
   }
 
   const activeConversation = conversations.find((c) => c.id === activeId);
+  const [search, setSearch] = useState("");
+  const filteredConversations = conversations.filter((c) =>
+    c.otherUser.displayName.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <main className="h-screen flex bg-base">
+    <div className="flex h-[calc(100vh-65px)] bg-base -mx-4 sm:-mx-6 -mt-6">
       <div className={clsx("w-full sm:w-80 border-r border-black/5 bg-white flex-col", activeId ? "hidden sm:flex" : "flex")}>
-        <div className="p-4 border-b border-black/5 font-display text-lg font-semibold">Messages</div>
+        <div className="p-4 border-b border-black/5">
+          <p className="font-display text-lg font-semibold mb-3">Messages</p>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search here…"
+            className="w-full rounded-xl bg-black/5 px-3.5 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-200"
+          />
+        </div>
         <div className="flex-1 overflow-y-auto">
-          <ConversationList conversations={conversations} activeId={activeId ?? undefined} onSelect={setActiveId} />
+          {conversations.length === 0 ? (
+            <div className="p-8 text-center">
+              <p className="text-3xl mb-2">💬</p>
+              <p className="text-sm font-medium">Your conversations will appear here ❤️</p>
+              <p className="text-xs text-ink/50 mt-1">Match with someone and start a conversation.</p>
+            </div>
+          ) : (
+            <ConversationList conversations={filteredConversations} activeId={activeId ?? undefined} onSelect={setActiveId} />
+          )}
         </div>
       </div>
 
@@ -121,6 +141,6 @@ export default function MessagesPage() {
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }
