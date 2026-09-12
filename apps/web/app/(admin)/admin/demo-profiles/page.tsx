@@ -39,6 +39,10 @@ export default function AdminDemoProfilesPage() {
   const [profiles, setProfiles] = useState<DemoProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const allGeneratedRef = useRef<PreviewProfile[]>([]);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedPhotos, setUploadedPhotos] = useState<{ name: string; url?: string; error?: string }[]>([]);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
+  const [assigning, setAssigning] = useState(false);
 
   const load = () => {
     fetch("/api/admin/demo-profiles")
@@ -109,6 +113,53 @@ export default function AdminDemoProfilesPage() {
       load();
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleBulkPhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setUploadingPhotos(true);
+    try {
+      const formData = new FormData();
+      files.forEach((f) => formData.append("files", f));
+      const res = await fetch("/api/admin/demo-profiles/bulk-photos", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.success) setUploadedPhotos(data.results);
+      else alert(data.error);
+    } finally {
+      setUploadingPhotos(false);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    }
+  };
+
+  const autoAssignPhotos = async () => {
+    const validPhotos = uploadedPhotos.filter((p) => p.url).map((p) => p.url as string);
+    if (validPhotos.length === 0) return;
+    // Only assign to profiles that don't already have a real (non-Dicebear) photo.
+    const targets = profiles.filter((p) => !p.photos[0]?.url || p.photos[0].url.includes("dicebear.com")).slice(0, validPhotos.length);
+    if (targets.length === 0) {
+      alert("No demo profiles need a photo right now.");
+      return;
+    }
+    setAssigning(true);
+    try {
+      const assignments = targets.map((t, i) => ({ profileId: t.id, photoUrl: validPhotos[i] }));
+      const res = await fetch("/api/admin/demo-profiles/assign-photos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignments }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`${data.updated} profiles updated with new photos.`);
+        setUploadedPhotos([]);
+        load();
+      } else {
+        alert(data.error);
+      }
+    } finally {
+      setAssigning(false);
     }
   };
 
@@ -211,6 +262,50 @@ export default function AdminDemoProfilesPage() {
           </div>
         </div>
       )}
+
+      <div className="surface-card p-5 mb-6">
+        <p className="text-sm font-medium mb-1">Upload Photos in Bulk</p>
+        <p className="text-xs text-ink/50 mb-3">
+          Upload real photo files to replace the synthetic avatars — they'll auto-assign in order to demo profiles
+          that still need one.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="rounded-xl border border-black/10 px-4 py-2 text-sm font-medium cursor-pointer">
+            {uploadingPhotos ? "Uploading…" : "Choose Photos"}
+            <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleBulkPhotoSelect} className="hidden" disabled={uploadingPhotos} />
+          </label>
+          {uploadedPhotos.length > 0 && (
+            <>
+              <span className="text-xs text-ink/50">
+                {uploadedPhotos.filter((p) => p.url).length} uploaded, {uploadedPhotos.filter((p) => p.error).length} failed
+              </span>
+              <button
+                onClick={autoAssignPhotos}
+                disabled={assigning}
+                className="rounded-xl bg-success text-white px-4 py-2 text-sm font-medium disabled:opacity-50"
+              >
+                {assigning ? "Assigning…" : "Auto Assign"}
+              </button>
+            </>
+          )}
+        </div>
+        {uploadedPhotos.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {uploadedPhotos.map((p, i) => (
+              <div key={i} className="relative">
+                {p.url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.url} alt="" className="h-14 w-14 rounded-lg object-cover" />
+                ) : (
+                  <div className="h-14 w-14 rounded-lg bg-danger/10 flex items-center justify-center text-danger text-[9px] text-center p-1">
+                    {p.error}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-medium">{total} demo profile(s) currently active</p>
