@@ -1,15 +1,26 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { PostCard, PostData } from "../../../components/feed/PostCard";
 import { EmptyState, LoadingSkeleton } from "../../../components/ui/primitives";
 import { Button } from "../../../components/ui/Button";
-import { BottomNavigation, Navbar } from "../../../components/layout/Navigation";
+
+interface Suggested {
+  id: string;
+  displayName: string;
+  age: number;
+  city: string;
+  photoUrl: string | null;
+}
+
+const TRENDING = ["#Love", "#Pakistan", "#Travel", "#GoodVibes", "#Relationship", "#Life", "#Coffee", "#Music", "#Dreams"];
 
 export default function FeedPage() {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
   const [caption, setCaption] = useState("");
   const [posting, setPosting] = useState(false);
+  const [suggested, setSuggested] = useState<Suggested[]>([]);
 
   function load() {
     setLoading(true);
@@ -19,7 +30,13 @@ export default function FeedPage() {
       .finally(() => setLoading(false));
   }
 
-  useEffect(load, []);
+  useEffect(() => {
+    load();
+    fetch("/api/discover?limit=4")
+      .then((r) => r.json())
+      .then((d) => setSuggested((d.profiles ?? []).slice(0, 4)))
+      .catch(() => {});
+  }, []);
 
   async function createPost() {
     if (!caption.trim()) return;
@@ -39,9 +56,24 @@ export default function FeedPage() {
   }
 
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-base pb-20 px-4 pt-6 max-w-xl mx-auto space-y-4">
+    <div className="px-4 sm:px-6 py-6 max-w-6xl mx-auto grid lg:grid-cols-[220px_1fr_260px] gap-6">
+      {/* Left: feed nav */}
+      <aside className="hidden lg:block">
+        <div className="surface-card p-2 space-y-1 sticky top-20">
+          {[
+            ["Home", "/feed", "🏠"],
+            ["My Posts", "/feed", "📷"],
+            ["Connections", "/connections", "🤝"],
+          ].map(([label, href, icon]) => (
+            <Link key={label} href={href} className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm hover:bg-black/5 transition-colors">
+              <span>{icon}</span> {label}
+            </Link>
+          ))}
+        </div>
+      </aside>
+
+      {/* Center: feed */}
+      <div className="space-y-4">
         <div className="surface-card p-4">
           <textarea
             className="w-full text-sm outline-none resize-none"
@@ -51,7 +83,8 @@ export default function FeedPage() {
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
           />
-          <div className="flex justify-end mt-2">
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-black/5">
+            <span className="text-xs text-ink/40">📷 Add Photo</span>
             <Button size="sm" onClick={createPost} loading={posting} disabled={!caption.trim()}>
               Post
             </Button>
@@ -72,7 +105,42 @@ export default function FeedPage() {
         {posts.map((post) => (
           <PostCard key={post.id} post={post} onToggleLike={toggleLike} onOpenComments={() => {}} />
         ))}
-      </main>
-    </>
+      </div>
+
+      {/* Right: suggestions + trending */}
+      <aside className="space-y-6">
+        <div>
+          <p className="text-sm font-medium mb-3">People You May Like</p>
+          <div className="space-y-2">
+            {suggested.map((p) => (
+              <Link key={p.id} href={`/profile/${p.id}`} className="surface-card p-2.5 flex items-center gap-2.5">
+                <div className="h-10 w-10 rounded-full bg-rose-50 overflow-hidden shrink-0">
+                  {p.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.photoUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center text-rose-300 text-xs font-semibold">{p.displayName.charAt(0)}</div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium truncate">{p.displayName}, {p.age}</p>
+                  <p className="text-[10px] text-ink/40">{p.city}</p>
+                </div>
+              </Link>
+            ))}
+            {suggested.length === 0 && <p className="text-xs text-ink/40 surface-card p-3">No suggestions yet.</p>}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-sm font-medium mb-3">Trending Interests</p>
+          <div className="flex flex-wrap gap-1.5">
+            {TRENDING.map((t) => (
+              <span key={t} className="text-[10px] bg-rose-50 text-rose-600 px-2.5 py-1 rounded-full">{t}</span>
+            ))}
+          </div>
+        </div>
+      </aside>
+    </div>
   );
 }
