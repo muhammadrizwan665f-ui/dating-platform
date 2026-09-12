@@ -72,7 +72,6 @@ export default function FeedPage() {
         {posts.map((post) => (
           <PostCard key={post.id} post={post} onToggleLike={toggleLike} onOpenComments={() => {}} />
         ))}
-        <BottomNavigation />
       </main>
     </>
   );

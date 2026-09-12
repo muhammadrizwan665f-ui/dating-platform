@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BottomNavigation } from "../../../components/layout/Navigation";
 
 type Row = { userId: string; profile: { displayName: string; city: string; photos: { url: string }[] } | null };
 
@@ -72,8 +71,6 @@ export default function LikesPage() {
           </Link>
         ))}
       </div>
-
-      <BottomNavigation />
     </main>
   );
 }

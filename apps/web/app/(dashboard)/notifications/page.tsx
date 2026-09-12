@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BottomNavigation } from "../../../components/layout/Navigation";
 
 type Notif = { id: string; type: string; payload: any; readAt: string | null; createdAt: string };
 
@@ -72,8 +71,6 @@ export default function NotificationsPage() {
           );
         })}
       </div>
-
-      <BottomNavigation />
     </main>
   );
 }

@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "../../../components/ui/Button";
-import { BottomNavigation } from "../../../components/layout/Navigation";
 
 type Row = {
   id: string;
@@ -95,8 +94,6 @@ export default function ConnectionsPage() {
           </div>
         ))}
       </div>
-
-      <BottomNavigation />
     </main>
   );
 }

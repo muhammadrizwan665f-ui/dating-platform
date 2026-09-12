@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Badge } from "../../../../components/ui/primitives";
 import { Button } from "../../../../components/ui/Button";
-import { BottomNavigation } from "../../../../components/layout/Navigation";
 
 type ProfileDetail = {
   userId: string;
@@ -190,8 +189,6 @@ export default function ProfileDetailPage() {
           </div>
         )}
       </div>
-
-      <BottomNavigation />
     </main>
   );
 }

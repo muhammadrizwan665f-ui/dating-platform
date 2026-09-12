@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { ProfileCard, ProfileCardData } from "../../../components/profile/ProfileCard";
 import { EmptyState, LoadingSkeleton } from "../../../components/ui/primitives";
-import { BottomNavigation } from "../../../components/layout/Navigation";
 
 export default function DiscoverPage() {
   const [profiles, setProfiles] = useState<ProfileCardData[]>([]);
@@ -63,8 +62,6 @@ export default function DiscoverPage() {
       {!loading && profiles[0] && (
         <ProfileCard profile={profiles[0]} onLike={handleLike} onPass={handlePass} />
       )}
-
-      <BottomNavigation />
     </main>
   );
 }

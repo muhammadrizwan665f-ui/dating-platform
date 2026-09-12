@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { BottomNavigation } from "../../../components/layout/Navigation";
 import { Button } from "../../../components/ui/Button";
 
 type Incoming = { requesterId: string; requesterName: string; status: string; createdAt: string };
@@ -73,8 +72,6 @@ export default function WhatsappRequestsPage() {
           ))}
         </div>
       </div>
-
-      <BottomNavigation />
     </main>
   );
 }

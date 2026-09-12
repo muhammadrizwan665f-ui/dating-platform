@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Avatar, EmptyState } from "../../../components/ui/primitives";
-import { BottomNavigation } from "../../../components/layout/Navigation";
 
 interface MatchItem {
   matchId: string;
@@ -38,8 +37,6 @@ export default function MatchesPage() {
           </Link>
         ))}
       </div>
-
-      <BottomNavigation />
     </main>
   );
 }

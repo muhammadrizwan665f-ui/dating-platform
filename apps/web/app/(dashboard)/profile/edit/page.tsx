@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "../../../../components/ui/Input";
 import { Button } from "../../../../components/ui/Button";
-import { BottomNavigation } from "../../../../components/layout/Navigation";
 
 interface ProfileData {
   displayName: string;
@@ -188,8 +187,6 @@ export default function EditProfilePage() {
           {saved ? "Saved ✓" : "Save Profile"}
         </Button>
       </div>
-
-      <BottomNavigation />
     </main>
   );
 }

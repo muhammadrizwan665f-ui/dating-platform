@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "../../../components/ui/Button";
 import { Modal } from "../../../components/ui/primitives";
-import { BottomNavigation } from "../../../components/layout/Navigation";
 import { ThemePicker } from "../../../components/settings/ThemePicker";
 
 export default function SettingsPage() {
@@ -89,8 +88,6 @@ export default function SettingsPage() {
           <Button variant="ghost" onClick={() => setConfirmOpen(false)}>Cancel</Button>
         </div>
       </Modal>
-
-      <BottomNavigation />
     </main>
   );
 }
