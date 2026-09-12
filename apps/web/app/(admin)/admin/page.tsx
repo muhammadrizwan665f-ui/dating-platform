@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 interface Stats {
   totalUsers: number;
@@ -33,27 +34,27 @@ export default function AdminDashboardPage() {
 
   const pendingActions = (stats?.pendingProfiles ?? 0) + (stats?.pendingPayments ?? 0) + (stats?.openReports ?? 0);
 
-  const cards: [string, keyof Stats][] = [
-    ["Total Users", "totalUsers"],
-    ["Active Users", "activeUsers"],
-    ["New Today", "newRegistrationsToday"],
+  const cards: [string, keyof Stats, string?][] = [
+    ["Total Users", "totalUsers", "/admin/users"],
+    ["Active Users", "activeUsers", "/admin/users"],
+    ["New Today", "newRegistrationsToday", "/admin/users"],
     ["Male", "maleUsers"],
     ["Female", "femaleUsers"],
-    ["Demo Profiles", "demoProfiles"],
-    ["Pending Profile Reviews", "pendingProfiles"],
-    ["Approved Profiles", "approvedProfiles"],
-    ["Rejected Profiles", "rejectedProfiles"],
-    ["Pending Payments", "pendingPayments"],
-    ["Approved Payments", "approvedPayments"],
-    ["Active Memberships", "activeSubscriptions"],
-    ["Total Revenue (Rs.)", "revenue"],
-    ["Today's Revenue (Rs.)", "todayRevenue"],
-    ["This Month (Rs.)", "monthRevenue"],
-    ["Matches", "matches"],
-    ["Messages", "messages"],
-    ["Open Reports", "openReports"],
-    ["Suspended", "suspended"],
-    ["Banned", "banned"],
+    ["Demo Profiles", "demoProfiles", "/admin/demo-profiles"],
+    ["Pending Profile Reviews", "pendingProfiles", "/admin/profiles"],
+    ["Approved Profiles", "approvedProfiles", "/admin/profiles"],
+    ["Rejected Profiles", "rejectedProfiles", "/admin/profiles"],
+    ["Pending Payments", "pendingPayments", "/admin/payments"],
+    ["Approved Payments", "approvedPayments", "/admin/payments"],
+    ["Active Memberships", "activeSubscriptions", "/admin/plans"],
+    ["Total Revenue (Rs.)", "revenue", "/admin/payments"],
+    ["Today's Revenue (Rs.)", "todayRevenue", "/admin/payments"],
+    ["This Month (Rs.)", "monthRevenue", "/admin/payments"],
+    ["Matches", "matches", "/admin/matches"],
+    ["Messages", "messages", "/admin/messages"],
+    ["Open Reports", "openReports", "/admin/reports"],
+    ["Suspended", "suspended", "/admin/users"],
+    ["Banned", "banned", "/admin/users"],
   ];
 
   return (
@@ -67,12 +68,23 @@ export default function AdminDashboardPage() {
           )}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {cards.map(([label, key]) => (
-            <div key={key} className="surface-card p-5">
-              <p className="text-xs text-ink/50">{label}</p>
-              <p className="text-2xl font-semibold mt-1">{stats ? stats[key] : "—"}</p>
-            </div>
-          ))}
+          {cards.map(([label, key, href]) => {
+            const content = (
+              <>
+                <p className="text-xs text-ink/50">{label}</p>
+                <p className="text-2xl font-semibold mt-1">{stats ? stats[key] : "—"}</p>
+              </>
+            );
+            return href ? (
+              <Link key={key} href={href} className="surface-card p-5 block hover:shadow-cardHover hover:-translate-y-0.5 transition-all">
+                {content}
+              </Link>
+            ) : (
+              <div key={key} className="surface-card p-5">
+                {content}
+              </div>
+            );
+          })}
         </div>
     </>
   );
