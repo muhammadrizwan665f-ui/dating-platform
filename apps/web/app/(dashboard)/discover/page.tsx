@@ -36,7 +36,7 @@ export default function DiscoverPage() {
   }
 
   return (
-    <main className="min-h-screen bg-base pb-20 px-4 pt-8">
+    <div className="px-4 sm:px-6 py-6 max-w-2xl mx-auto">
       <h1 className="font-display text-2xl font-semibold text-center mb-6">Discover</h1>
 
       {matchedName && (
@@ -62,6 +62,6 @@ export default function DiscoverPage() {
       {!loading && profiles[0] && (
         <ProfileCard profile={profiles[0]} onLike={handleLike} onPass={handlePass} />
       )}
-    </main>
+    </div>
   );
 }

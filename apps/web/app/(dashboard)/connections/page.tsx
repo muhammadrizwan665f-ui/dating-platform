@@ -42,7 +42,7 @@ export default function ConnectionsPage() {
   if (loading) return <p className="text-center py-20 text-sm text-ink/50">Loading…</p>;
 
   return (
-    <main className="min-h-screen bg-base pb-24 px-4 pt-8 max-w-md mx-auto">
+    <div className="px-4 sm:px-6 py-6 max-w-md mx-auto ">
       <h1 className="font-display text-2xl font-semibold mb-4">Connections</h1>
 
       <div className="flex gap-2 mb-6">
@@ -94,6 +94,6 @@ export default function ConnectionsPage() {
           </div>
         ))}
       </div>
-    </main>
+    </div>
   );
 }

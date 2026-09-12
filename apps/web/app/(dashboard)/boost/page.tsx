@@ -56,7 +56,7 @@ export default function BoostPage() {
 
   if (submitted) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-6 bg-base">
+      <div className="flex items-center justify-center px-6 py-20">
         <div className="surface-card p-8 max-w-sm text-center">
           <p className="text-3xl mb-2">🚀</p>
           <h1 className="font-display text-xl font-semibold">Boost pending review</h1>
@@ -64,12 +64,12 @@ export default function BoostPage() {
             Once approved, your profile gets extra Discover visibility for the boost duration.
           </p>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-base px-4 py-10">
+    <div className="px-4 sm:px-6 py-10 max-w-2xl mx-auto">
       <h1 className="font-display text-2xl font-semibold text-center mb-2">Boost your profile</h1>
       <p className="text-center text-ink/50 mb-8 text-sm">
         Get more visibility in Discover for a limited time — doesn't guarantee matches.
@@ -131,6 +131,6 @@ export default function BoostPage() {
           )}
         </div>
       )}
-    </main>
+    </div>
   );
 }

@@ -30,7 +30,7 @@ export default function WhatsappRequestsPage() {
   if (loading) return <p className="text-center py-20 text-sm text-ink/50">Loading…</p>;
 
   return (
-    <main className="min-h-screen bg-base pb-24 px-4 pt-8 max-w-md mx-auto space-y-8">
+    <div className="px-4 sm:px-6 py-6 max-w-md mx-auto space-y-8">
       <h1 className="font-display text-2xl font-semibold">WhatsApp Requests</h1>
 
       <div>
@@ -72,6 +72,6 @@ export default function WhatsappRequestsPage() {
           ))}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

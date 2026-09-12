@@ -21,7 +21,7 @@ export default function MatchesPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-base pb-20 px-4 pt-8 max-w-lg mx-auto">
+    <div className="px-4 sm:px-6 py-6 max-w-lg mx-auto ">
       <h1 className="font-display text-2xl font-semibold text-center mb-6">Matches</h1>
 
       {!loading && matches.length === 0 && (
@@ -37,6 +37,6 @@ export default function MatchesPage() {
           </Link>
         ))}
       </div>
-    </main>
+    </div>
   );
 }

@@ -32,7 +32,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-base pb-20 px-4 pt-8 max-w-md mx-auto space-y-6">
+    <div className="px-4 sm:px-6 py-6 max-w-md mx-auto space-y-6">
       <h1 className="font-display text-2xl font-semibold">Privacy & Safety</h1>
 
       <ThemePicker />
@@ -88,6 +88,6 @@ export default function SettingsPage() {
           <Button variant="ghost" onClick={() => setConfirmOpen(false)}>Cancel</Button>
         </div>
       </Modal>
-    </main>
+    </div>
   );
 }
