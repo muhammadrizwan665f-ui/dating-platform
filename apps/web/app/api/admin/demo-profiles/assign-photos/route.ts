@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.profilePhoto.deleteMany({ where: { profileId: a.profileId, isPrimary: true } });
     await prisma.profilePhoto.create({
-      data: { profileId: a.profileId, url: a.photoUrl, position: 0, isPrimary: true, moderationStatus: "APPROVED" },
+      data: { profileId: a.profileId, url: a.photoUrl, position: 0, isPrimary: true, moderationStatus: "VISIBLE" },
     });
     updated++;
   }

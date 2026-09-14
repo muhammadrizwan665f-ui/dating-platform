@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
       url: g.photoUrl,
       position: 0,
       isPrimary: true,
-      moderationStatus: "APPROVED" as const,
+      moderationStatus: "VISIBLE" as const,
     }));
 
     // Three bulk inserts instead of N individual nested creates — orders of

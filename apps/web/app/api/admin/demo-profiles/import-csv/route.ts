@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
                 verified: status === "APPROVED",
                 completeness: 100,
                 isDemo: true,
-                photos: photoUrl ? { create: [{ url: photoUrl, position: 0, isPrimary: true, moderationStatus: "APPROVED" }] } : undefined,
+                photos: photoUrl ? { create: [{ url: photoUrl, position: 0, isPrimary: true, moderationStatus: "VISIBLE" }] } : undefined,
               },
             },
           },
