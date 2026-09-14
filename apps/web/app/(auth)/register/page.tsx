@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
 
@@ -46,6 +47,21 @@ export default function RegisterPage() {
         setError(data.error ?? "Something went wrong. Please try again.");
         return;
       }
+
+      // The register API only creates the account — it never establishes a
+      // session, so without this the user would silently fail every request
+      // in onboarding (401 Unauthorized) despite the account existing.
+      const signInRes = await signIn("credentials", {
+        identifier: form.phone || form.email,
+        password: form.password,
+        redirect: false,
+      });
+      if (signInRes?.error) {
+        setError("Account created, but automatic login failed. Please log in manually.");
+        router.push("/login");
+        return;
+      }
+
       router.push("/onboarding");
     } catch {
       setError("Network error. Please try again.");

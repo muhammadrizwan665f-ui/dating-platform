@@ -33,7 +33,13 @@ export default function OnboardingPage() {
   // right place for them — send them to Edit Profile instead.
   useEffect(() => {
     fetch("/api/profile")
-      .then((r) => r.json())
+      .then((r) => {
+        if (r.status === 401) {
+          router.replace("/login?next=/onboarding");
+          throw new Error("not authenticated");
+        }
+        return r.json();
+      })
       .then((d) => {
         const p = d.profile;
         if (!p) return;
@@ -46,6 +52,7 @@ export default function OnboardingPage() {
           setRejectionNote("Your previous submission needed changes. Update your photo below and resubmit.");
         }
       })
+      .catch(() => {})
       .finally(() => setLoading(false));
     fetch("/api/membership/plans")
       .then((r) => r.json())
