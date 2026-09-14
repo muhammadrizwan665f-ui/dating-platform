@@ -95,11 +95,17 @@ export async function GET(req: NextRequest) {
       return { p, score, userAge: age(p.dob) };
     })
     .filter((x) => x.userAge >= prefs.ageMin && x.userAge <= prefs.ageMax)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 20);
+    .sort((a, b) => b.score - a.score);
+
+  // Paginated — the frontend now shows a scrollable grid of every eligible
+  // profile (not just a top-20 swipe deck), loading more as the user scrolls.
+  const { searchParams } = new URL(req.url);
+  const skip = Math.max(0, Number(searchParams.get("skip")) || 0);
+  const take = Math.min(60, Math.max(1, Number(searchParams.get("take")) || 20));
+  const page = ranked.slice(skip, skip + take);
 
   return NextResponse.json({
-    profiles: ranked.map(({ p, userAge }) => ({
+    profiles: page.map(({ p, userAge }) => ({
       id: p.userId,
       displayName: p.displayName,
       age: userAge,
@@ -109,5 +115,7 @@ export async function GET(req: NextRequest) {
       interests: p.interests,
       photoUrl: p.photos[0]?.url ?? null,
     })),
+    total: ranked.length,
+    hasMore: skip + take < ranked.length,
   });
 }

@@ -20,6 +20,7 @@ type ProfileDetail = {
   isSelf: boolean;
   alreadyLiked: boolean;
   whatsappStatus: string | null;
+  posts: { id: string; caption: string | null; imageUrl: string | null; likeCount: number; commentCount: number; createdAt: string }[];
 };
 
 export default function ProfileDetailPage() {
@@ -158,6 +159,29 @@ export default function ProfileDetailPage() {
             <p className="text-xs font-medium text-ink/50 mb-1.5">Interests</p>
             <div className="flex flex-wrap gap-1.5">
               {profile.interests.map((i) => <Badge key={i}>{i}</Badge>)}
+            </div>
+          </div>
+        )}
+
+        {profile.posts.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-ink/50 mb-2">Posts ({profile.posts.length})</p>
+            <div className="grid grid-cols-3 gap-1.5">
+              {profile.posts.map((post) => (
+                <div key={post.id} className="relative aspect-square rounded-lg overflow-hidden bg-rose-50">
+                  {post.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={post.imageUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center p-2">
+                      <p className="text-[10px] text-ink/50 line-clamp-4 text-center">{post.caption}</p>
+                    </div>
+                  )}
+                  <div className="absolute bottom-1 right-1 flex gap-1 text-[9px] text-white bg-black/50 rounded-full px-1.5 py-0.5">
+                    <span>❤️ {post.likeCount}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

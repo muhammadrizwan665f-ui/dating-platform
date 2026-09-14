@@ -36,9 +36,15 @@ export async function GET(req: NextRequest, { params }: { params: { userId: stri
     return before ? diff - 1 : diff;
   })();
 
-  const [alreadyLiked, whatsappStatus] = await Promise.all([
+  const [alreadyLiked, whatsappStatus, posts] = await Promise.all([
     prisma.like.findUnique({ where: { fromUserId_toUserId: { fromUserId: viewerId, toUserId: userId } } }).catch(() => null),
     prisma.whatsappRequest.findUnique({ where: { requesterId_targetId: { requesterId: viewerId, targetId: userId } } }),
+    prisma.post.findMany({
+      where: { authorId: userId, status: "VISIBLE" },
+      include: { images: { take: 1 }, _count: { select: { likes: true, comments: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+    }),
   ]);
 
   return NextResponse.json({
@@ -57,5 +63,13 @@ export async function GET(req: NextRequest, { params }: { params: { userId: stri
     isSelf: userId === viewerId,
     alreadyLiked: !!alreadyLiked,
     whatsappStatus: whatsappStatus?.status ?? null,
+    posts: posts.map((post) => ({
+      id: post.id,
+      caption: post.caption,
+      imageUrl: post.images[0]?.url ?? null,
+      likeCount: post._count.likes,
+      commentCount: post._count.comments,
+      createdAt: post.createdAt,
+    })),
   });
 }
