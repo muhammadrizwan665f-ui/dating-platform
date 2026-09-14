@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
 
-const STEP_LABELS = ["Photo", "Plans"];
+const STEP_LABELS = ["Photo", "Plan aur Payment"];
 
 interface Plan {
   id: string;
@@ -12,6 +13,15 @@ interface Plan {
   durationDays: number;
   badge?: string | null;
   features: Record<string, unknown>;
+}
+interface Method {
+  id: string;
+  name: string;
+  instructions: string;
+  logoUrl?: string | null;
+  qrCodeUrl?: string | null;
+  accountNumber?: string | null;
+  accountTitle?: string | null;
 }
 
 export default function OnboardingPage() {
@@ -24,13 +34,17 @@ export default function OnboardingPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [existingPhotoUrl, setExistingPhotoUrl] = useState<string | null>(null);
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
-  // Load whatever the user has already saved (photo) so coming back here —
-  // after a refresh, a rejection, or navigating away mid-flow — never asks
-  // for the same info twice. If already submitted/approved, this isn't the
-  // right place for them — send them to Edit Profile instead.
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [methods, setMethods] = useState<Method[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<Method | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [txnRef, setTxnRef] = useState("");
+  const [paymentDate, setPaymentDate] = useState("");
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
+
   useEffect(() => {
     fetch("/api/profile")
       .then((r) => {
@@ -49,14 +63,13 @@ export default function OnboardingPage() {
         }
         if (p.photos?.[0]?.url) setExistingPhotoUrl(p.photos[0].url);
         if (p.status === "REJECTED") {
-          setRejectionNote("Your previous submission needed changes. Update your photo below and resubmit.");
+          setRejectionNote("Aapki pichli submission mein kuch theek karna tha. Neeche update karo aur dobara submit karo.");
         }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-    fetch("/api/membership/plans")
-      .then((r) => r.json())
-      .then((d) => setPlans(d.plans ?? []));
+    fetch("/api/membership/plans").then((r) => r.json()).then((d) => setPlans(d.plans ?? []));
+    fetch("/api/payments/methods").then((r) => r.json()).then((d) => setMethods(d.methods ?? []));
   }, [router]);
 
   function next() {
@@ -73,10 +86,37 @@ export default function OnboardingPage() {
     setPhotoPreview(URL.createObjectURL(file));
   }
 
-  async function submitForApproval() {
+  const copyAccountNumber = () => {
+    if (!selectedMethod?.accountNumber) return;
+    navigator.clipboard.writeText(selectedMethod.accountNumber);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleProofSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setProofFile(file);
+    setProofPreview(URL.createObjectURL(file));
+  };
+
+  // Payment is mandatory: the profile only becomes SUBMITTED (and lands in
+  // admin's review queue) once the payment itself has been submitted, not
+  // just once a plan was picked. Nothing here lets the user reach the main
+  // app — DashboardLayout also redirects a DRAFT profile straight back here.
+  async function submitPaymentAndProfile() {
+    if (!selectedPlan || !selectedMethod) {
+      setUploadError("Pehle ek plan aur payment method chuno.");
+      return;
+    }
+    if (!txnRef.trim()) {
+      setUploadError("Transaction / reference ID zaroori hai.");
+      return;
+    }
     setSaving(true);
     setUploadError(null);
     try {
+      // 1. Profile photo, if selected.
       let photoKey: string | null = null;
       if (photoFile) {
         const formData = new FormData();
@@ -84,13 +124,49 @@ export default function OnboardingPage() {
         const uploadRes = await fetch("/api/profile/photos/upload", { method: "POST", body: formData });
         const uploadData = await uploadRes.json();
         if (!uploadRes.ok) {
-          setUploadError(uploadData.error || "Photo upload failed. Please try a different photo.");
+          setUploadError(uploadData.error || "Photo upload fail ho gaya. Dusri photo try karo.");
           setSaving(false);
           return;
         }
         photoKey = uploadData.key;
       }
 
+      // 2. Payment proof screenshot.
+      let proofUrl: string | undefined;
+      if (proofFile) {
+        const formData = new FormData();
+        formData.append("file", proofFile);
+        const uploadRes = await fetch("/api/profile/photos/upload", { method: "POST", body: formData });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          setUploadError(uploadData.error || "Screenshot upload fail ho gaya.");
+          setSaving(false);
+          return;
+        }
+        proofUrl = uploadData.url;
+      }
+
+      // 3. Submit the payment for admin review.
+      const paymentRes = await fetch("/api/payments/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: selectedPlan.id,
+          methodId: selectedMethod.id,
+          amount: selectedPlan.price,
+          txnRef,
+          paymentDate: paymentDate || new Date().toISOString(),
+          proofUrl,
+        }),
+      });
+      if (!paymentRes.ok) {
+        const data = await paymentRes.json().catch(() => ({}));
+        setUploadError(data.error ? JSON.stringify(data.error) : "Payment submit nahi ho saka. Dobara try karo.");
+        setSaving(false);
+        return;
+      }
+
+      // 4. Only now does the profile move to SUBMITTED (admin review queue).
       const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -103,14 +179,14 @@ export default function OnboardingPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setUploadError(data.error ? JSON.stringify(data.error) : "Couldn't submit your profile. Please try again.");
+        setUploadError(data.error ? JSON.stringify(data.error) : "Profile submit nahi ho saki. Dobara try karo.");
         setSaving(false);
         return;
       }
 
-      router.push(selectedPlan ? `/membership?plan=${selectedPlan}` : "/membership");
+      router.push("/onboarding/pending");
     } catch (err) {
-      setUploadError("Something went wrong. Please check your connection and try again.");
+      setUploadError("Kuch ghalat ho gaya. Apna connection check karke dobara try karo.");
       setSaving(false);
     }
   }
@@ -141,37 +217,32 @@ export default function OnboardingPage() {
           />
         </div>
 
-        <div className="surface-card p-6 min-h-[280px] shadow-cardHover">
+        <div className="surface-card p-6 shadow-cardHover">
           {step === 0 && (
             <div className="space-y-3 text-center">
-              <p className="text-sm font-medium">Add a profile photo</p>
+              <p className="text-sm font-medium">Profile photo lagao</p>
               {photoPreview || existingPhotoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={photoPreview || existingPhotoUrl || ""} alt="Preview" className="w-32 h-32 rounded-2xl object-cover mx-auto" />
               ) : (
                 <div className="w-32 h-32 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-300 text-3xl mx-auto">+</div>
               )}
-              {existingPhotoUrl && !photoFile && (
-                <p className="text-xs text-ink/40">Aapki pehle se photo hai — nayi choose karo replace karne ke liye, ya aage badho.</p>
-              )}
               <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} className="mx-auto" />
             </div>
           )}
 
           {step === 1 && (
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-center mb-3">Apna plan chuno ❤️</p>
+            <div className="space-y-4">
+              <p className="text-sm font-medium text-center">Apna plan chuno ❤️</p>
               <div className="space-y-2">
                 {plans.map((plan, i) => {
                   const isPro = i === 1 && plans.length >= 2;
-                  const selected = selectedPlan === plan.id;
+                  const selected = selectedPlan?.id === plan.id;
                   return (
                     <button
                       key={plan.id}
-                      onClick={() => setSelectedPlan(plan.id)}
-                      className={`w-full text-left rounded-2xl p-4 border-2 transition-colors ${
-                        selected ? "border-rose-500 bg-rose-50" : "border-black/10"
-                      }`}
+                      onClick={() => setSelectedPlan(plan)}
+                      className={`w-full text-left rounded-2xl p-4 border-2 transition-colors ${selected ? "border-rose-500 bg-rose-50" : "border-black/10"}`}
                     >
                       <div className="flex items-center justify-between">
                         <div>
@@ -189,9 +260,63 @@ export default function OnboardingPage() {
                   );
                 })}
               </div>
-              <p className="text-xs text-ink/40 text-center pt-1">
-                Payment agle screen pe hoga — abhi sirf profile submit karo.
-              </p>
+
+              {selectedPlan && (
+                <>
+                  <p className="text-sm font-medium pt-2">Payment method chuno</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {methods.map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => setSelectedMethod(m)}
+                        className={`rounded-xl border px-3 py-2.5 text-sm text-left ${selectedMethod?.id === m.id ? "border-rose-400 bg-rose-50" : "border-black/10"}`}
+                      >
+                        {m.name}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {selectedMethod && (
+                <div className="rounded-2xl border border-black/10 p-5 text-center space-y-3">
+                  {selectedMethod.logoUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={selectedMethod.logoUrl} alt={selectedMethod.name} className="h-10 mx-auto object-contain" />
+                  )}
+                  {selectedMethod.qrCodeUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={selectedMethod.qrCodeUrl} alt="Payment QR" className="h-40 w-40 mx-auto rounded-xl border border-black/5 object-contain" />
+                  )}
+                  {selectedMethod.accountNumber && (
+                    <div>
+                      {selectedMethod.accountTitle && <p className="text-xs text-ink/50">{selectedMethod.accountTitle}</p>}
+                      <div className="flex items-center justify-center gap-2 mt-1">
+                        <p className="text-base font-semibold tracking-wide">{selectedMethod.accountNumber}</p>
+                        <button onClick={copyAccountNumber} className="text-xs font-medium bg-rose-50 text-rose-600 rounded-full px-3 py-1">
+                          {copied ? "Copied ✓" : "Copy"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {selectedMethod.instructions && (
+                    <p className="text-xs text-ink/60 bg-black/[0.03] rounded-lg p-3 text-left">{selectedMethod.instructions}</p>
+                  )}
+
+                  <Input label="Transaction / reference ID" required value={txnRef} onChange={(e) => setTxnRef(e.target.value)} />
+                  <Input label="Payment date" type="date" required value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
+
+                  <div className="text-left">
+                    <label className="text-xs text-ink/50">Payment ka screenshot lagao (zaroori hai)</label>
+                    {proofPreview && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={proofPreview} alt="Proof preview" className="mt-2 h-28 rounded-xl object-cover border border-black/10" />
+                    )}
+                    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleProofSelect} className="mt-2 text-sm" />
+                  </div>
+                </div>
+              )}
+
               {uploadError && (
                 <p className="text-sm text-danger bg-danger/10 rounded-lg px-3 py-2">{uploadError}</p>
               )}
@@ -206,8 +331,8 @@ export default function OnboardingPage() {
           {step < STEP_LABELS.length - 1 ? (
             <Button onClick={next}>Continue</Button>
           ) : (
-            <Button onClick={submitForApproval} loading={saving}>
-              Submit for Approval
+            <Button onClick={submitPaymentAndProfile} loading={saving} disabled={!selectedMethod || !txnRef.trim() || !proofFile}>
+              Payment Submit Karo
             </Button>
           )}
         </div>
