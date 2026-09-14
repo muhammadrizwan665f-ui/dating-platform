@@ -42,10 +42,7 @@ export function Navbar() {
   const links = [
     ["/", "Home"],
     ["/how-it-works", "How It Works"],
-    ["/safety", "Safety"],
     ["/pricing", "Pricing"],
-    ["/themes", "Themes"],
-    ["/contact", "Contact"],
   ] as const;
 
   return (

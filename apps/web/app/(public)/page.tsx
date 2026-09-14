@@ -68,22 +68,24 @@ export default async function HomePage() {
               </p>
             </div>
 
-            {/* Right: visual composition (illustrated, no real/fake human photos) */}
+            {/* Right: visual composition with sample profile photos */}
             <div className="relative aspect-square max-w-md mx-auto w-full">
               <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-rose-200 via-rose-100 to-plum-500/10 shadow-cardHover" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-8xl">💞</span>
               </div>
               <div className="absolute -left-2 bottom-10 surface-card p-3 w-40 rotate-[-6deg]">
-                <div className="h-16 w-full rounded-lg bg-gradient-to-br from-rose-300 to-plum-500/40 mb-2 flex items-center justify-center text-2xl">
-                  🧑
+                <div className="h-16 w-full rounded-lg mb-2 overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="https://i.ibb.co/S4HHw5CS/a04b6ad311acb3112d97b8eaa80ee6cf.jpg" alt="Ali" className="w-full h-full object-cover" />
                 </div>
                 <p className="text-xs font-semibold flex items-center gap-1">Ali, 26 <Badge tone="success">✓</Badge></p>
                 <p className="text-[10px] text-ink/50">Lahore</p>
               </div>
               <div className="absolute -right-2 top-10 surface-card p-3 w-40 rotate-[6deg]">
-                <div className="h-16 w-full rounded-lg bg-gradient-to-br from-plum-500/40 to-rose-300 mb-2 flex items-center justify-center text-2xl">
-                  👩
+                <div className="h-16 w-full rounded-lg mb-2 overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="https://i.ibb.co/1t7x61p3/images-2026-09-13-T073454-165.jpg" alt="Ayesha" className="w-full h-full object-cover" />
                 </div>
                 <p className="text-xs font-semibold">Ayesha, 24 ❤️</p>
                 <p className="text-[10px] text-ink/50">Islamabad</p>
