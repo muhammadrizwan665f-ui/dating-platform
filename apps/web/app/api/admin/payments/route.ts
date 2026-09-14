@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
     include: {
       user: { select: { id: true, email: true, phone: true, profile: { select: { displayName: true } } } },
       plan: true,
+      boostPlan: true,
       method: true,
     },
   });

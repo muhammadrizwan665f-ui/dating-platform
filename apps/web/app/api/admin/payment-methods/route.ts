@@ -28,13 +28,17 @@ export async function PATCH(req: NextRequest) {
   const admin = await requireRole(req, [ROLES.ADMIN, ROLES.SUPER_ADMIN]);
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { id, name, instructions, isActive } = await req.json();
+  const { id, name, instructions, isActive, logoUrl, qrCodeUrl, accountNumber, accountTitle } = await req.json();
   if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
   const data: any = {};
   if (name !== undefined) data.name = name;
   if (instructions !== undefined) data.instructions = instructions;
   if (isActive !== undefined) data.isActive = !!isActive;
+  if (logoUrl !== undefined) data.logoUrl = logoUrl || null;
+  if (qrCodeUrl !== undefined) data.qrCodeUrl = qrCodeUrl || null;
+  if (accountNumber !== undefined) data.accountNumber = accountNumber || null;
+  if (accountTitle !== undefined) data.accountTitle = accountTitle || null;
 
   const method = await prisma.paymentMethod.update({ where: { id }, data });
   return NextResponse.json({ success: true, method });

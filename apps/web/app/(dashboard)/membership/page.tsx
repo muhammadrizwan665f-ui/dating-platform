@@ -15,6 +15,10 @@ interface Method {
   id: string;
   name: string;
   instructions: string;
+  logoUrl?: string | null;
+  qrCodeUrl?: string | null;
+  accountNumber?: string | null;
+  accountTitle?: string | null;
 }
 
 export default function MembershipPage() {
@@ -24,8 +28,12 @@ export default function MembershipPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<Method | null>(null);
   const [form, setForm] = useState({ txnRef: "", paymentDate: "", note: "" });
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/membership/plans").then((r) => r.json()).then((d) => setPlans(d.plans ?? []));
@@ -33,23 +41,62 @@ export default function MembershipPage() {
     fetch("/api/dashboard").then((r) => r.json()).then((d) => setCurrentPlanName(d.membershipPlan ?? null));
   }, []);
 
+  const copyAccountNumber = () => {
+    if (!selectedMethod?.accountNumber) return;
+    navigator.clipboard.writeText(selectedMethod.accountNumber);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleProofSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setProofFile(file);
+    setProofPreview(URL.createObjectURL(file));
+  };
+
   async function submitPayment() {
     if (!selectedPlan || !selectedMethod) return;
     setSubmitting(true);
-    await fetch("/api/payments/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        planId: selectedPlan.id,
-        methodId: selectedMethod.id,
-        amount: selectedPlan.price,
-        txnRef: form.txnRef,
-        paymentDate: form.paymentDate || new Date().toISOString(),
-        note: form.note,
-      }),
-    });
-    setSubmitting(false);
-    setSubmitted(true);
+    setError(null);
+    try {
+      let proofUrl: string | undefined;
+      if (proofFile) {
+        const formData = new FormData();
+        formData.append("file", proofFile);
+        const uploadRes = await fetch("/api/profile/photos/upload", { method: "POST", body: formData });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          setError(uploadData.error || "Screenshot upload failed. Please try again.");
+          return;
+        }
+        proofUrl = uploadData.url;
+      }
+
+      const res = await fetch("/api/payments/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: selectedPlan.id,
+          methodId: selectedMethod.id,
+          amount: selectedPlan.price,
+          txnRef: form.txnRef,
+          paymentDate: form.paymentDate || new Date().toISOString(),
+          note: form.note,
+          proofUrl,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ? JSON.stringify(data.error) : "Couldn't submit payment. Please try again.");
+        return;
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setError("Something went wrong. Please check your connection and try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (submitted) {
@@ -57,9 +104,9 @@ export default function MembershipPage() {
       <div className="flex items-center justify-center px-6 py-20">
         <div className="surface-card p-8 max-w-sm text-center">
           <p className="text-3xl mb-2">⏳</p>
-          <h1 className="font-display text-xl font-semibold">Payment under review</h1>
+          <h1 className="font-display text-xl font-semibold">Payment review ke liye bhej diya</h1>
           <p className="text-sm text-ink/60 mt-2">
-            We&apos;ll notify you once our team verifies your payment. This usually takes a few hours.
+            Hamari team payment verify kar rahi hai — approve hote hi aapko notify kar denge.
           </p>
         </div>
       </div>
@@ -77,9 +124,9 @@ export default function MembershipPage() {
   return (
     <div className="px-4 sm:px-6 py-10 max-w-5xl mx-auto">
       <div className="rounded-3xl bg-gradient-to-br from-rose-500 to-plum-500 p-8 text-center text-white mb-10">
-        <h1 className="font-display text-2xl sm:text-3xl font-semibold">Choose Your DilMil Experience ❤️</h1>
+        <h1 className="font-display text-2xl sm:text-3xl font-semibold">Apna DilMil Plan Chuno ❤️</h1>
         <p className="text-white/80 mt-2 text-sm max-w-md mx-auto">
-          Get more visibility, discover more people and make meaningful connections.
+          Zyada visibility, zyada log discover karo, aur asli connections banao.
         </p>
       </div>
 
@@ -126,12 +173,12 @@ export default function MembershipPage() {
 
       {selectedPlan && (
         <div className="max-w-md mx-auto surface-card p-6 space-y-4">
-          <p className="font-medium text-sm">Select payment method</p>
+          <p className="font-medium text-sm">Payment method chuno</p>
           <div className="grid grid-cols-2 gap-2">
             {methods.map((m) => (
               <button
                 key={m.id}
-                onClick={() => setSelectedMethod(m)}
+                onClick={() => { setSelectedMethod(m); setError(null); }}
                 className={`rounded-xl border px-3 py-2.5 text-sm text-left ${selectedMethod?.id === m.id ? "border-rose-400 bg-rose-50" : "border-black/10"}`}
               >
                 {m.name}
@@ -140,8 +187,43 @@ export default function MembershipPage() {
           </div>
 
           {selectedMethod && (
+            <div className="rounded-2xl border border-black/10 p-5 text-center space-y-3">
+              {/* 1. Logo at the top, small */}
+              {selectedMethod.logoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={selectedMethod.logoUrl} alt={selectedMethod.name} className="h-10 mx-auto object-contain" />
+              )}
+
+              {/* 2. QR code */}
+              {selectedMethod.qrCodeUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={selectedMethod.qrCodeUrl} alt="Payment QR" className="h-44 w-44 mx-auto rounded-xl border border-black/5 object-contain" />
+              )}
+
+              {/* 3. Account title + number with copy button */}
+              {selectedMethod.accountNumber && (
+                <div>
+                  {selectedMethod.accountTitle && <p className="text-xs text-ink/50">{selectedMethod.accountTitle}</p>}
+                  <div className="flex items-center justify-center gap-2 mt-1">
+                    <p className="text-base font-semibold tracking-wide">{selectedMethod.accountNumber}</p>
+                    <button
+                      onClick={copyAccountNumber}
+                      className="text-xs font-medium bg-rose-50 text-rose-600 rounded-full px-3 py-1"
+                    >
+                      {copied ? "Copied ✓" : "Copy"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {selectedMethod.instructions && (
+                <p className="text-xs text-ink/60 bg-black/[0.03] rounded-lg p-3 text-left">{selectedMethod.instructions}</p>
+              )}
+            </div>
+          )}
+
+          {selectedMethod && (
             <>
-              <p className="text-xs text-ink/60 bg-black/[0.03] rounded-lg p-3">{selectedMethod.instructions}</p>
               <Input
                 label="Transaction / reference ID"
                 required
@@ -155,13 +237,27 @@ export default function MembershipPage() {
                 value={form.paymentDate}
                 onChange={(e) => setForm((f) => ({ ...f, paymentDate: e.target.value }))}
               />
+
+              {/* 4. Payment proof / screenshot upload */}
+              <div>
+                <label className="text-xs text-ink/50">Payment ka screenshot lagao</label>
+                {proofPreview && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={proofPreview} alt="Proof preview" className="mt-2 h-28 rounded-xl object-cover border border-black/10" />
+                )}
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleProofSelect} className="mt-2 text-sm" />
+              </div>
+
               <Input
                 label="Note (optional)"
                 value={form.note}
                 onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
               />
+
+              {error && <p className="text-sm text-danger bg-danger/10 rounded-lg px-3 py-2">{error}</p>}
+
               <Button className="w-full" onClick={submitPayment} loading={submitting} disabled={!form.txnRef}>
-                Submit Payment
+                Payment Submit Karo
               </Button>
             </>
           )}
@@ -170,10 +266,10 @@ export default function MembershipPage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12 max-w-3xl mx-auto">
         {[
-          ["📈", "More Matches", "Increase your chances"],
-          ["👁️", "Better Visibility", "Get noticed faster"],
-          ["🎛️", "Advanced Filters", "Find exactly what you want"],
-          ["🎧", "Priority Support", "We're here for you"],
+          ["📈", "Zyada Matches", "Chances badhao"],
+          ["👁️", "Behtar Visibility", "Jaldi notice ho"],
+          ["🎛️", "Advanced Filters", "Apni marzi ka dhoondo"],
+          ["🎧", "Priority Support", "Hum hamesha ready hain"],
         ].map(([icon, title, desc]) => (
           <div key={title} className="surface-card p-4 text-center">
             <span className="text-xl">{icon}</span>

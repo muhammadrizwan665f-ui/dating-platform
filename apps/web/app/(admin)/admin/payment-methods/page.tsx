@@ -1,16 +1,23 @@
 "use client";
 import { useEffect, useState } from "react";
 
-type Method = { id: string; name: string; instructions: string; isActive: boolean };
+type Method = {
+  id: string;
+  name: string;
+  instructions: string;
+  isActive: boolean;
+  logoUrl?: string | null;
+  qrCodeUrl?: string | null;
+  accountNumber?: string | null;
+  accountTitle?: string | null;
+};
 
 export default function AdminPaymentMethodsPage() {
   const [methods, setMethods] = useState<Method[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<Record<string, string>>({});
   const [newName, setNewName] = useState("");
-  const [saving, setSaving] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingFor, setUploadingFor] = useState<string | null>(null);
 
   const load = () => {
     fetch("/api/admin/payment-methods")
@@ -35,16 +42,13 @@ export default function AdminPaymentMethodsPage() {
     return data;
   }
 
-  const save = async (m: Method) => {
-    setSaving(m.id);
+  const updateField = async (id: string, field: string, value: string) => {
     setError(null);
     try {
-      await callApi({ id: m.id, instructions: editing[m.id] ?? m.instructions });
+      await callApi({ id, [field]: value });
       load();
     } catch (e: any) {
       setError(e.message);
-    } finally {
-      setSaving(null);
     }
   };
 
@@ -60,16 +64,34 @@ export default function AdminPaymentMethodsPage() {
 
   const addMethod = async () => {
     if (!newName.trim()) return;
-    setAdding(true);
     setError(null);
     try {
-      await callApi({ name: newName.trim(), instructions: "Add account details here." });
+      await callApi({ name: newName.trim(), instructions: "" });
       setNewName("");
       load();
     } catch (e: any) {
       setError(e.message);
+    }
+  };
+
+  const uploadImage = async (methodId: string, field: "logoUrl" | "qrCodeUrl", file: File) => {
+    setUploadingFor(`${methodId}-${field}`);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const uploadRes = await fetch("/api/profile/photos/upload", { method: "POST", body: formData });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) {
+        setError(uploadData.error || "Upload failed.");
+        return;
+      }
+      await callApi({ id: methodId, [field]: uploadData.url });
+      load();
+    } catch (e: any) {
+      setError(e.message);
     } finally {
-      setAdding(false);
+      setUploadingFor(null);
     }
   };
 
@@ -77,14 +99,10 @@ export default function AdminPaymentMethodsPage() {
     <div className="max-w-2xl">
       <h1 className="font-display text-2xl font-semibold mb-1">Payment Methods</h1>
       <p className="text-sm text-ink/50 mb-6">
-        Set real account numbers / titles here — customers see exactly this text when submitting a manual payment.
+        Logo, QR code, and account number/IBAN — customers see exactly this when paying manually.
       </p>
 
-      {error && (
-        <div className="mb-4 rounded-xl bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">
-          {error}
-        </div>
-      )}
+      {error && <div className="mb-4 rounded-xl bg-danger/10 border border-danger/20 px-4 py-3 text-sm text-danger">{error}</div>}
 
       <div className="surface-card p-5 mb-6">
         <p className="text-sm font-medium mb-3">Add a payment method</p>
@@ -96,12 +114,8 @@ export default function AdminPaymentMethodsPage() {
             onKeyDown={(e) => e.key === "Enter" && addMethod()}
             className="flex-1 rounded-xl border border-black/10 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
           />
-          <button
-            onClick={addMethod}
-            disabled={adding || !newName.trim()}
-            className="rounded-xl bg-rose-500 text-white px-5 py-2.5 text-sm font-medium disabled:opacity-40 hover:bg-rose-600 transition-colors"
-          >
-            {adding ? "Adding…" : "+ Add"}
+          <button onClick={addMethod} disabled={!newName.trim()} className="rounded-xl bg-rose-500 text-white px-5 py-2.5 text-sm font-medium disabled:opacity-40 hover:bg-rose-600 transition-colors">
+            + Add
           </button>
         </div>
       </div>
@@ -114,27 +128,74 @@ export default function AdminPaymentMethodsPage() {
         <div className="space-y-4">
           {methods.map((m) => (
             <div key={m.id} className="surface-card p-5">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-4">
                 <p className="text-sm font-semibold">{m.name}</p>
                 <label className="flex items-center gap-2 text-xs">
                   <span className={m.isActive ? "text-success" : "text-ink/40"}>{m.isActive ? "Active" : "Inactive"}</span>
                   <input type="checkbox" checked={m.isActive} onChange={() => toggleActive(m)} />
                 </label>
               </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-xs text-ink/50 mb-1.5">Logo</label>
+                  {m.logoUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={m.logoUrl} alt="" className="h-12 w-12 rounded-lg object-contain bg-black/5 mb-2" />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => e.target.files?.[0] && uploadImage(m.id, "logoUrl", e.target.files[0])}
+                    disabled={uploadingFor === `${m.id}-logoUrl`}
+                    className="text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-ink/50 mb-1.5">QR Code</label>
+                  {m.qrCodeUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={m.qrCodeUrl} alt="" className="h-16 w-16 rounded-lg object-contain bg-black/5 mb-2" />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => e.target.files?.[0] && uploadImage(m.id, "qrCodeUrl", e.target.files[0])}
+                    disabled={uploadingFor === `${m.id}-qrCodeUrl`}
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                  <label className="block text-xs text-ink/50 mb-1">Account Title</label>
+                  <input
+                    defaultValue={m.accountTitle ?? ""}
+                    onBlur={(e) => updateField(m.id, "accountTitle", e.target.value)}
+                    placeholder="e.g. DilMil Pvt Ltd"
+                    className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-ink/50 mb-1">Mobile Number / IBAN</label>
+                  <input
+                    defaultValue={m.accountNumber ?? ""}
+                    onBlur={(e) => updateField(m.id, "accountNumber", e.target.value)}
+                    placeholder="e.g. 0300-1234567"
+                    className="w-full rounded-lg border border-black/10 px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+
+              <label className="block text-xs text-ink/50 mb-1">Extra instructions (optional)</label>
               <textarea
                 defaultValue={m.instructions}
-                onChange={(e) => setEditing((s) => ({ ...s, [m.id]: e.target.value }))}
-                rows={3}
-                className="w-full rounded-xl border border-black/10 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-200"
-                placeholder="Account title, account number, bank name, IBAN..."
+                onBlur={(e) => updateField(m.id, "instructions", e.target.value)}
+                rows={2}
+                className="w-full rounded-lg border border-black/10 px-3 py-2 text-xs"
+                placeholder="Any extra notes for the customer..."
               />
-              <button
-                onClick={() => save(m)}
-                disabled={saving === m.id}
-                className="mt-3 rounded-lg bg-black/5 hover:bg-black/10 transition-colors px-4 py-2 text-xs font-medium disabled:opacity-40"
-              >
-                {saving === m.id ? "Saving…" : "Save Changes"}
-              </button>
             </div>
           ))}
         </div>
