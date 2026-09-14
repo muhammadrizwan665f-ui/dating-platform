@@ -15,7 +15,7 @@ export default async function HomePage() {
       where: { status: "APPROVED", hiddenFromDiscovery: false },
       include: { photos: { where: { isPrimary: true }, take: 1 } },
       orderBy: { completeness: "desc" },
-      take: 8,
+      take: 6,
     }),
     prisma.membershipPlan.findMany({ where: { isActive: true }, orderBy: { price: "asc" } }),
     prisma.setting.findMany(),
@@ -23,7 +23,7 @@ export default async function HomePage() {
       where: { status: "VISIBLE" },
       include: { author: { include: { profile: true } }, images: { take: 1 }, _count: { select: { likes: true, comments: true } } },
       orderBy: { createdAt: "desc" },
-      take: 3,
+      take: 9,
     }),
   ]);
 
@@ -93,11 +93,6 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
-
-        <StatsSection stats={stats} />
-
-        <HowItWorks />
-        <WhyChooseDilMil />
 
         {/* Featured profiles */}
         {featured.length > 0 && (
@@ -170,6 +165,8 @@ export default async function HomePage() {
             <Link href="/register" className="text-rose-500 font-medium text-sm mt-8 inline-block">Join the Feed →</Link>
           </div>
         </section>
+
+        <StatsSection stats={stats} />
 
         {/* Membership plans */}
         {plans.length > 0 && (
@@ -249,6 +246,9 @@ export default async function HomePage() {
         </section>
 
         <FAQSection />
+
+        <HowItWorks />
+        <WhyChooseDilMil />
 
         {/* Final CTA */}
         <section className="bg-gradient-to-br from-rose-500 to-plum-500 py-16 px-5 sm:px-8 text-center">
