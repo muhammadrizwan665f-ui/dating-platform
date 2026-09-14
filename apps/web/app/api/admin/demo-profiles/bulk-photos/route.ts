@@ -14,19 +14,28 @@ export async function POST(req: NextRequest) {
   const files = form.getAll("files") as File[];
   if (files.length === 0) return NextResponse.json({ error: "No files provided" }, { status: 400 });
 
-  const results: { name: string; url?: string; error?: string }[] = [];
-  for (const file of files) {
+  async function uploadOne(file: File): Promise<{ name: string; url?: string; error?: string }> {
     try {
       const buffer = Buffer.from(await file.arrayBuffer());
       const { key } = await uploadBuffer(buffer, file.type, "demo-profiles");
-      results.push({ name: file.name, url: publicUrlFor(key) });
+      return { name: file.name, url: publicUrlFor(key) };
     } catch (err) {
       const message =
         err instanceof UnsupportedFileTypeError ? "Unsupported file type" :
         err instanceof FileTooLargeError ? "File too large (max 8MB)" :
         "Upload failed";
-      results.push({ name: file.name, error: message });
+      return { name: file.name, error: message };
     }
+  }
+
+  // Uploaded in parallel chunks (was one-at-a-time before, which could take
+  // 50-100+ seconds for 50 files and risk a request timeout).
+  const CONCURRENCY = 10;
+  const results: { name: string; url?: string; error?: string }[] = [];
+  for (let i = 0; i < files.length; i += CONCURRENCY) {
+    const chunk = files.slice(i, i + CONCURRENCY);
+    const chunkResults = await Promise.all(chunk.map(uploadOne));
+    results.push(...chunkResults);
   }
 
   return NextResponse.json({

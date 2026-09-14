@@ -98,47 +98,54 @@ export async function POST(req: NextRequest) {
   }
 
   const passwordHash = await bcrypt.hash("DemoAccount123!", 12);
-  let successCount = 0;
 
-  // Chunked, but still awaited sequentially per-chunk to avoid overwhelming
-  // the DB connection pool on very large (500-1000) batches.
-  const CHUNK = 20;
-  for (let i = 0; i < generated.length; i += CHUNK) {
-    const chunk = generated.slice(i, i + CHUNK);
-    await Promise.all(
-      chunk.map((g, j) =>
-        prisma.user.create({
-          data: {
-            email: `demo.${g.displayName.toLowerCase()}.${Date.now()}.${i + j}.${Math.floor(Math.random() * 1e6)}@dilmil.demo`,
-            passwordHash,
-            role: "USER",
-            status: "ACTIVE",
-            profile: {
-              create: {
-                displayName: g.displayName,
-                dob: new Date(new Date().getFullYear() - g.age, 0, 1),
-                gender: g.gender as any,
-                city: g.city,
-                bio: g.bio,
-                interests: g.interests,
-                intention: g.intention as any,
-                profession: g.profession,
-                education: g.education,
-                status: "APPROVED",
-                verified: true,
-                completeness: 100,
-                isDemo: true,
-                photos: { create: [{ url: g.photoUrl, position: 0, isPrimary: true, moderationStatus: "APPROVED" }] },
-              },
-            },
-          },
-        })
-      )
-    );
-    successCount += chunk.length;
+  try {
+    const now = Date.now();
+    const userRows = generated.map((g, idx) => ({
+      id: crypto.randomUUID(),
+      email: `demo.${g.displayName.toLowerCase()}.${now}.${idx}.${Math.floor(Math.random() * 1e6)}@dilmil.demo`,
+      passwordHash,
+      role: "USER" as const,
+      status: "ACTIVE" as const,
+    }));
+    const profileRows = generated.map((g, idx) => ({
+      id: crypto.randomUUID(),
+      userId: userRows[idx].id,
+      displayName: g.displayName,
+      dob: new Date(new Date().getFullYear() - g.age, 0, 1),
+      gender: g.gender as any,
+      city: g.city,
+      bio: g.bio,
+      interests: g.interests,
+      intention: g.intention as any,
+      profession: g.profession,
+      education: g.education,
+      status: "APPROVED" as const,
+      verified: true,
+      completeness: 100,
+      isDemo: true,
+    }));
+    const photoRows = generated.map((g, idx) => ({
+      id: crypto.randomUUID(),
+      profileId: profileRows[idx].id,
+      url: g.photoUrl,
+      position: 0,
+      isPrimary: true,
+      moderationStatus: "APPROVED" as const,
+    }));
+
+    // Three bulk inserts instead of N individual nested creates — orders of
+    // magnitude faster for large batches (50-1000 profiles) and avoids the
+    // request-timeout risk that made this hang before.
+    await prisma.user.createMany({ data: userRows });
+    await prisma.profile.createMany({ data: profileRows });
+    await prisma.profilePhoto.createMany({ data: photoRows });
+
+    return NextResponse.json({ success: true, created: userRows.length });
+  } catch (err: any) {
+    console.error("[demo-profiles create] failed:", err);
+    return NextResponse.json({ error: err.message || "Failed to create profiles" }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true, created: successCount });
 }
 
 /** DELETE — remove all demo profiles (and their user accounts) in one go. */

@@ -74,19 +74,26 @@ export default function AdminDemoProfilesPage() {
     if (selectedFiles.length === 0) return;
     setUploading(true);
     setUploadFailures(0);
+    setActionError(null);
     try {
       const formData = new FormData();
       selectedFiles.forEach((f) => formData.append("files", f));
       const res = await fetch("/api/admin/demo-profiles/bulk-photos", { method: "POST", body: formData });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ error: `Upload failed (server returned ${res.status})` }));
+      if (!res.ok) {
+        setActionError(data.error || `Upload failed (${res.status}).`);
+        return;
+      }
       const urls = (data.results ?? []).filter((r: any) => r.url).map((r: any) => r.url as string);
       setUploadedPhotoUrls(urls);
       setUploadFailures((data.results ?? []).length - urls.length);
       if (urls.length === 0) {
-        alert("No photos uploaded successfully — check the file types (JPEG/PNG/WEBP, max 8MB) and try again.");
+        setActionError("No photos uploaded successfully — check the file types (JPEG/PNG/WEBP, max 8MB) and try again.");
         return;
       }
       await runPreview(urls);
+    } catch (err: any) {
+      setActionError(err?.message || "Network error while uploading — please try again with fewer photos at once.");
     } finally {
       setUploading(false);
     }
@@ -94,6 +101,7 @@ export default function AdminDemoProfilesPage() {
 
   const runPreview = async (photoUrls: string[]) => {
     setGeneratingPreview(true);
+    setActionError(null);
     try {
       const res = await fetch("/api/admin/demo-profiles", {
         method: "POST",
@@ -106,13 +114,19 @@ export default function AdminDemoProfilesPage() {
           dryRun: true,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ error: `Preview failed (server returned ${res.status})` }));
+      if (!res.ok) {
+        setActionError(data.error || `Preview failed (${res.status}).`);
+        return;
+      }
       if (data.success) {
         setPreview(data.preview);
         setPreviewCount(data.count);
       } else {
-        alert(data.error || "Failed to generate preview");
+        setActionError(data.error || "Failed to generate preview");
       }
+    } catch (err: any) {
+      setActionError(err?.message || "Network error — please try again.");
     } finally {
       setGeneratingPreview(false);
     }
@@ -122,9 +136,12 @@ export default function AdminDemoProfilesPage() {
   // profiles with placeholder avatars, without uploading real photos.
   const generatePreviewNoPhotos = () => runPreview([]);
 
+  const [actionError, setActionError] = useState<string | null>(null);
+
   const createProfiles = async () => {
     if (!confirm(`Create ${previewCount} demo profiles now? They'll be active and visible in Discover immediately.`)) return;
     setCreating(true);
+    setActionError(null);
     try {
       const res = await fetch("/api/admin/demo-profiles", {
         method: "POST",
@@ -136,7 +153,11 @@ export default function AdminDemoProfilesPage() {
           ageMin, ageMax, cities, intentions,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ error: `Server returned ${res.status} — the request may have timed out.` }));
+      if (!res.ok) {
+        setActionError(data.error || `Request failed (${res.status}).`);
+        return;
+      }
       if (data.success) {
         alert(`${data.created} demo profiles created and are now active.`);
         setPreview(null);
@@ -145,8 +166,10 @@ export default function AdminDemoProfilesPage() {
         if (photoInputRef.current) photoInputRef.current.value = "";
         load();
       } else {
-        alert(data.error || "Failed to create");
+        setActionError(data.error || "Failed to create");
       }
+    } catch (err: any) {
+      setActionError(err?.message || "Network error — please try again.");
     } finally {
       setCreating(false);
     }
@@ -240,6 +263,7 @@ export default function AdminDemoProfilesPage() {
           </button>
         </div>
         {uploadFailures > 0 && <p className="text-xs text-danger mt-2">{uploadFailures} photo(s) failed to upload (wrong type or too large).</p>}
+        {actionError && !preview && <p className="text-xs text-danger bg-danger/10 rounded-lg px-3 py-2 mt-3">{actionError}</p>}
 
         <div className="flex items-center gap-2 mt-4 pt-4 border-t border-black/5">
           <span className="text-xs text-ink/40">or, no photos yet —</span>
@@ -261,6 +285,9 @@ export default function AdminDemoProfilesPage() {
               {creating ? "Creating…" : `3. Create ${previewCount} Profiles (make active)`}
             </button>
           </div>
+          {actionError && (
+            <p className="text-xs text-danger bg-danger/10 rounded-lg px-3 py-2 mb-4">{actionError}</p>
+          )}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-96 overflow-y-auto">
             {preview.map((p, i) => (
               <div key={i} className="rounded-xl border border-black/5 p-2 text-center">
