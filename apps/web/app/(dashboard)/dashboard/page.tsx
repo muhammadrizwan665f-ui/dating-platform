@@ -67,7 +67,7 @@ export default function DashboardPage() {
     ["Matches", "/matches", "💞"],
     ["Messages", "/messages", "💬"],
     ["Feed", "/feed", "📸"],
-    ["Edit Profile", "/profile/edit", "✏️"],
+    ["Profile Edit", "/profile/edit", "✏️"],
     ["Membership", "/membership", "💎"],
   ] as const;
 
@@ -120,21 +120,21 @@ export default function DashboardPage() {
       {/* CENTER: welcome + stats + quick actions */}
       <div>
         <h1 className="font-display text-2xl font-semibold mb-1">
-          {data?.displayName ? `Good to see you, ${data.displayName} ❤️` : "Welcome to DilMil"}
+          {data?.displayName ? `Wapas dekh kar acha laga, ${data.displayName} ❤️` : "DilMil mein Khush Amdeed"}
         </h1>
-        <p className="text-sm text-ink/50 mb-6">Here&apos;s what&apos;s happening with your DilMil account.</p>
+        <p className="text-sm text-ink/50 mb-6">Aapke DilMil account mein ye sab ho raha hai.</p>
 
         {data && data.profileStatus !== "APPROVED" && (
           <div className="surface-card p-4 mb-4 border-l-4 border-gold-400">
             <p className="text-sm font-medium">
               {data.profileStatus === "DRAFT" || data.profileStatus === "SUBMITTED"
-                ? "Complete your profile to get more visibility."
+                ? "Zyada visibility ke liye apni profile complete karo."
                 : data.profileStatus === "UNDER_REVIEW"
-                  ? "Your profile is under review — we'll notify you once it's approved."
-                  : "Your profile needs attention."}
+                  ? "Aapki profile review ho rahi hai — approve hote hi bata denge."
+                  : "Aapki profile mein kuch theek karna hai."}
             </p>
             <Link href="/profile/edit" className="text-xs text-rose-500 font-medium mt-1 inline-block">
-              {data.profileCompleteness}% complete — finish now →
+              {data.profileCompleteness}% complete — ab poora karo →
             </Link>
           </div>
         )}
@@ -156,7 +156,7 @@ export default function DashboardPage() {
           </Link>
         )}
 
-        <p className="text-sm font-medium mb-3">Quick Actions</p>
+        <p className="text-sm font-medium mb-3">Jaldi Karo</p>
         <div className="grid grid-cols-3 gap-3">
           {quickActions.map(([label, href, icon]) => (
             <Link key={href} href={href} className="surface-card p-4 text-center hover:shadow-cardHover transition-shadow">

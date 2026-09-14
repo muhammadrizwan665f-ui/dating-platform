@@ -53,18 +53,18 @@ export default async function HomePage() {
                 <span className="text-rose-500">Connect.</span> ❤️
               </h1>
               <p className="text-ink/60 mt-5 text-lg max-w-md mx-auto lg:mx-0">
-                Discover genuine connections, meaningful conversations and new possibilities — built for Pakistan.
+                Asli connections dhoondo, matlab wali baatein karo, aur naye rishtay banao — sirf Pakistan ke liye.
               </p>
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mt-8">
                 <Link href="/register" className="bg-rose-500 text-white rounded-xl px-6 py-3.5 font-medium hover:bg-rose-600 transition-colors shadow-sm">
-                  Create Your Profile →
+                  Apni Profile Banao →
                 </Link>
                 <Link href="/how-it-works" className="border border-black/10 bg-white rounded-xl px-6 py-3.5 font-medium hover:bg-black/5 transition-colors">
-                  Explore How It Works
+                  Kaise Kaam Karta Hai Dekho
                 </Link>
               </div>
               <p className="text-xs text-ink/40 mt-6">
-                💗 Join thousands of people finding their special someone.
+                💗 Hazaron logon ke sath judo jo apna khaas insaan dhoond rahe hain.
               </p>
             </div>
 
@@ -98,8 +98,8 @@ export default async function HomePage() {
         {featured.length > 0 && (
           <section className="py-10 px-5 sm:px-8">
             <div className="max-w-6xl mx-auto">
-              <h2 className="font-display text-3xl font-semibold text-center mb-2">People You Could Meet ❤️</h2>
-              <p className="text-center text-ink/50 text-sm mb-6">A glimpse of the DilMil community</p>
+              <h2 className="font-display text-3xl font-semibold text-center mb-2">Log Jinse Aap Mil Sakte Hain ❤️</h2>
+              <p className="text-center text-ink/50 text-sm mb-6">DilMil community ki ek jhalak</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {featured.map((p) => (
                   <div key={p.id} className="surface-card overflow-hidden hover:shadow-cardHover transition-shadow">
@@ -124,7 +124,7 @@ export default async function HomePage() {
                 ))}
               </div>
               <p className="text-center mt-8">
-                <Link href="/register" className="text-rose-500 font-medium text-sm">Explore People →</Link>
+                <Link href="/register" className="text-rose-500 font-medium text-sm">Log Dekho →</Link>
               </p>
             </div>
           </section>
@@ -133,8 +133,8 @@ export default async function HomePage() {
         {/* Social feed preview */}
         <section className="py-10 px-5 sm:px-8 bg-rose-50/50">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="font-display text-3xl font-semibold mb-2">Share. Connect. Be Yourself.</h2>
-            <p className="text-ink/50 mb-6">DilMil is also a community — not just a swipe.</p>
+            <h2 className="font-display text-3xl font-semibold mb-2">Share Karo. Judo. Khud Bano.</h2>
+            <p className="text-ink/50 mb-6">DilMil sirf swipe nahi, ek community bhi hai.</p>
             {feedPosts.length > 0 ? (
               <div className="grid sm:grid-cols-3 gap-4 text-left">
                 {feedPosts.map((post) => (
@@ -159,10 +159,10 @@ export default async function HomePage() {
               </div>
             ) : (
               <div className="surface-card p-8 text-sm text-ink/40">
-                Be the first to share a moment on the DilMil feed once you join.
+                Join karo aur DilMil feed pe sabse pehle apna moment share karo.
               </div>
             )}
-            <Link href="/register" className="text-rose-500 font-medium text-sm mt-8 inline-block">Join the Feed →</Link>
+            <Link href="/register" className="text-rose-500 font-medium text-sm mt-8 inline-block">Feed Join Karo →</Link>
           </div>
         </section>
 
@@ -174,7 +174,7 @@ export default async function HomePage() {
             <div className="max-w-5xl mx-auto text-center">
               <p className="text-xs font-bold uppercase tracking-widest text-rose-500 mb-2">Choose Your Plan</p>
               <h2 className="font-display text-3xl font-semibold mb-2">Membership Plans</h2>
-              <p className="text-ink/50 mb-2 max-w-md mx-auto">More visibility. Better discovery. More ways to connect.</p>
+              <p className="text-ink/50 mb-2 max-w-md mx-auto">Zyada visibility. Behtar discovery. Judne ke naye tareeqe.</p>
               <p className="text-xs text-ink/40 mb-6">Plans improve reach — never guaranteed matches or dates.</p>
               <div className="grid sm:grid-cols-3 gap-6 text-left">
                 {plans.map((p, i) => {
@@ -210,7 +210,7 @@ export default async function HomePage() {
                           isMid ? "bg-white text-plum-600 hover:bg-white/90" : "bg-rose-500 text-white hover:bg-rose-600"
                         }`}
                       >
-                        Get Started →
+                        Shuru Karo →
                       </Link>
                     </div>
                   );
@@ -223,7 +223,7 @@ export default async function HomePage() {
         {/* Safety */}
         <section className="bg-rose-50/50 py-10 px-5 sm:px-8">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="font-display text-3xl font-semibold mb-4">Safety, by Design</h2>
+            <h2 className="font-display text-3xl font-semibold mb-4">Aapki Safety, Hamari Zimmedari</h2>
             <div className="grid sm:grid-cols-2 gap-3 text-left mt-8">
               {[
                 ["🔞", "18+ adults only — verified server-side"],
@@ -240,7 +240,7 @@ export default async function HomePage() {
               ))}
             </div>
             <Link href="/safety" className="text-rose-500 font-medium mt-8 inline-block">
-              Read Our Safety Commitment →
+              Hamara Safety Wada Parho →
             </Link>
           </div>
         </section>
@@ -253,14 +253,14 @@ export default async function HomePage() {
         {/* Final CTA */}
         <section className="bg-gradient-to-br from-rose-500 to-plum-500 py-10 px-5 sm:px-8 text-center">
           <h2 className="font-display text-3xl sm:text-4xl font-semibold text-white mb-3">
-            Your next meaningful connection could be one click away. ❤️
+            Aapka agla khaas rishta sirf ek click door ho sakta hai. ❤️
           </h2>
           <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
             <Link href="/register" className="bg-white text-rose-500 rounded-xl px-7 py-3.5 font-medium hover:bg-white/90 transition-colors">
-              Create Your Profile →
+              Apni Profile Banao →
             </Link>
             <Link href="/register" className="border border-white/40 text-white rounded-xl px-7 py-3.5 font-medium hover:bg-white/10 transition-colors">
-              Explore People →
+              Log Dekho →
             </Link>
           </div>
         </section>

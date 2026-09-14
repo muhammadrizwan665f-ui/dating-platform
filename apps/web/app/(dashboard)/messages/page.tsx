@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import io, { Socket } from "socket.io-client";
 import clsx from "clsx";
 import { ConversationList, ConversationSummary, ChatBubble, ChatMessage } from "../../../components/chat/Chat";
@@ -7,6 +8,15 @@ import { Avatar, EmptyState } from "../../../components/ui/primitives";
 import { Button } from "../../../components/ui/Button";
 
 export default function MessagesPage() {
+  return (
+    <Suspense fallback={null}>
+      <MessagesPageInner />
+    </Suspense>
+  );
+}
+
+function MessagesPageInner() {
+  const searchParams = useSearchParams();
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -18,7 +28,29 @@ export default function MessagesPage() {
   useEffect(() => {
     fetch("/api/chat/conversations")
       .then((r) => r.json())
-      .then((d) => setConversations(d.conversations ?? []));
+      .then((d) => {
+        setConversations(d.conversations ?? []);
+        // Deep link from a profile page's "Send Message" button: find or
+        // create the conversation, then auto-select it.
+        const withUserId = searchParams.get("with");
+        if (withUserId) {
+          fetch("/api/chat/start", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ targetUserId: withUserId }),
+          })
+            .then((r) => r.json())
+            .then((startRes) => {
+              if (startRes.conversationId) {
+                setActiveId(startRes.conversationId);
+                // Refresh the list so the new/found conversation appears with its real metadata.
+                fetch("/api/chat/conversations")
+                  .then((r) => r.json())
+                  .then((d2) => setConversations(d2.conversations ?? []));
+              }
+            });
+        }
+      });
 
     // Realtime connection to the sidecar server (see apps/realtime). We mint
     // a small dedicated token (see /api/realtime-token) rather than trying

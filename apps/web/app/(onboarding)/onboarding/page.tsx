@@ -1,10 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "../../../components/ui/Input";
 import { Button } from "../../../components/ui/Button";
 
-const STEP_LABELS = ["Basics", "Photo", "Bio", "Interests", "Preferences", "Review", "Membership", "Submit"];
+const STEP_LABELS = ["Photo", "Plans"];
+
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  durationDays: number;
+  badge?: string | null;
+  features: Record<string, unknown>;
+}
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -13,47 +21,35 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(true);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [rejectionNote, setRejectionNote] = useState<string | null>(null);
-  const [profile, setProfile] = useState({
-    bio: "",
-    interests: [] as string[],
-    interestInput: "",
-    ageMin: 20,
-    ageMax: 35,
-    intention: "DATING",
-  });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [existingPhotoUrl, setExistingPhotoUrl] = useState<string | null>(null);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
-  // Load whatever the user has already saved (bio/interests/photo) so
-  // coming back here — after a refresh, a rejection, or navigating away
-  // mid-flow — never shows a blank form and never asks for the same info
-  // twice. If the profile is already submitted/approved, this isn't the
-  // right place for them at all — send them to Edit Profile instead.
+  // Load whatever the user has already saved (photo) so coming back here —
+  // after a refresh, a rejection, or navigating away mid-flow — never asks
+  // for the same info twice. If already submitted/approved, this isn't the
+  // right place for them — send them to Edit Profile instead.
   useEffect(() => {
     fetch("/api/profile")
       .then((r) => r.json())
       .then((d) => {
         const p = d.profile;
         if (!p) return;
-
         if (p.status === "APPROVED" || p.status === "SUBMITTED" || p.status === "UNDER_REVIEW") {
           router.replace("/profile/edit");
           return;
         }
-
-        setProfile((prev) => ({
-          ...prev,
-          bio: p.bio || "",
-          interests: p.interests || [],
-          intention: p.intention || "DATING",
-        }));
         if (p.photos?.[0]?.url) setExistingPhotoUrl(p.photos[0].url);
         if (p.status === "REJECTED") {
-          setRejectionNote("Your previous submission needed changes. Update the details below and resubmit.");
+          setRejectionNote("Your previous submission needed changes. Update your photo below and resubmit.");
         }
       })
       .finally(() => setLoading(false));
+    fetch("/api/membership/plans")
+      .then((r) => r.json())
+      .then((d) => setPlans(d.plans ?? []));
   }, [router]);
 
   function next() {
@@ -61,13 +57,6 @@ export default function OnboardingPage() {
   }
   function back() {
     setStep((s) => Math.max(s - 1, 0));
-  }
-
-  function addInterest() {
-    const v = profile.interestInput.trim();
-    if (v && !profile.interests.includes(v)) {
-      setProfile((p) => ({ ...p, interests: [...p.interests, v], interestInput: "" }));
-    }
   }
 
   async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -81,8 +70,6 @@ export default function OnboardingPage() {
     setSaving(true);
     setUploadError(null);
     try {
-      // 1. Upload photo (if selected) via server-proxied upload — no direct
-      //    browser-to-R2 request, so no R2 CORS config needed.
       let photoKey: string | null = null;
       if (photoFile) {
         const formData = new FormData();
@@ -97,15 +84,12 @@ export default function OnboardingPage() {
         photoKey = uploadData.key;
       }
 
-      // 2. Save profile fields + submit for review.
       const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          bio: profile.bio,
-          interests: profile.interests,
-          intention: profile.intention,
-          preferences: { ageMin: profile.ageMin, ageMax: profile.ageMax },
+          intention: "DATING",
+          preferences: { ageMin: 20, ageMax: 40 },
           photoKey,
           submit: true,
         }),
@@ -117,7 +101,7 @@ export default function OnboardingPage() {
         return;
       }
 
-      router.push("/membership");
+      router.push(selectedPlan ? `/membership?plan=${selectedPlan}` : "/membership");
     } catch (err) {
       setUploadError("Something went wrong. Please check your connection and try again.");
       setSaving(false);
@@ -152,102 +136,55 @@ export default function OnboardingPage() {
 
         <div className="surface-card p-6 min-h-[280px] shadow-cardHover">
           {step === 0 && (
-            <div className="space-y-3">
-              <p className="text-sm text-ink/60">Your basic details were captured at registration. You can refine your bio next.</p>
+            <div className="space-y-3 text-center">
+              <p className="text-sm font-medium">Add a profile photo</p>
+              {photoPreview || existingPhotoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={photoPreview || existingPhotoUrl || ""} alt="Preview" className="w-32 h-32 rounded-2xl object-cover mx-auto" />
+              ) : (
+                <div className="w-32 h-32 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-300 text-3xl mx-auto">+</div>
+              )}
+              {existingPhotoUrl && !photoFile && (
+                <p className="text-xs text-ink/40">Aapki pehle se photo hai — nayi choose karo replace karne ke liye, ya aage badho.</p>
+              )}
+              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} className="mx-auto" />
             </div>
           )}
 
           {step === 1 && (
             <div className="space-y-3">
-              <p className="text-sm font-medium">Add a profile photo</p>
-              {photoPreview || existingPhotoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={photoPreview || existingPhotoUrl || ""} alt="Preview" className="w-32 h-32 rounded-2xl object-cover" />
-              ) : (
-                <div className="w-32 h-32 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-300 text-3xl">+</div>
-              )}
-              {existingPhotoUrl && !photoFile && (
-                <p className="text-xs text-ink/40">You already have a photo — pick a new one to replace it, or continue.</p>
-              )}
-              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} />
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-3">
-              <label className="text-sm font-medium">About me</label>
-              <textarea
-                className="w-full rounded-xl border border-black/10 px-3.5 py-2.5 text-sm h-32"
-                maxLength={500}
-                value={profile.bio}
-                onChange={(e) => setProfile((p) => ({ ...p, bio: e.target.value }))}
-                placeholder="Tell people a little about yourself..."
-              />
-            </div>
-          )}
-
-          {step === 3 && (
-            <div className="space-y-3">
-              <label className="text-sm font-medium">Interests</label>
-              <div className="flex gap-2">
-                <Input
-                  value={profile.interestInput}
-                  onChange={(e) => setProfile((p) => ({ ...p, interestInput: e.target.value }))}
-                  placeholder="e.g. Travel"
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInterest())}
-                />
-                <Button type="button" onClick={addInterest}>Add</Button>
+              <p className="text-sm font-medium text-center mb-3">Apna plan chuno ❤️</p>
+              <div className="space-y-2">
+                {plans.map((plan, i) => {
+                  const isPro = i === 1 && plans.length >= 2;
+                  const selected = selectedPlan === plan.id;
+                  return (
+                    <button
+                      key={plan.id}
+                      onClick={() => setSelectedPlan(plan.id)}
+                      className={`w-full text-left rounded-2xl p-4 border-2 transition-colors ${
+                        selected ? "border-rose-500 bg-rose-50" : "border-black/10"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold flex items-center gap-2">
+                            {plan.name}
+                            {isPro && <span className="text-[9px] font-bold uppercase bg-gold-400 text-[#14111A] px-2 py-0.5 rounded-full">Popular</span>}
+                          </p>
+                          <p className="text-xs text-ink/50 mt-0.5">
+                            {plan.durationDays >= 3650 ? "Lifetime access" : `${plan.durationDays} days`}
+                          </p>
+                        </div>
+                        <p className="text-lg font-semibold">Rs.{plan.price}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
-              <div className="flex flex-wrap gap-2">
-                {profile.interests.map((i) => (
-                  <span key={i} className="bg-rose-50 text-rose-600 text-xs rounded-full px-3 py-1">
-                    {i}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 4 && (
-            <div className="space-y-4">
-              <label className="text-sm font-medium">Relationship intention</label>
-              <select
-                className="w-full rounded-xl border border-black/10 px-3.5 py-2.5 text-sm"
-                value={profile.intention}
-                onChange={(e) => setProfile((p) => ({ ...p, intention: e.target.value }))}
-              >
-                <option value="DATING">Dating</option>
-                <option value="FRIENDSHIP">Friendship</option>
-                <option value="RELATIONSHIP">Relationship</option>
-                <option value="NOT_SURE">Not sure yet</option>
-              </select>
-              <label className="text-sm font-medium">Preferred age range</label>
-              <div className="flex items-center gap-3">
-                <Input type="number" value={profile.ageMin} onChange={(e) => setProfile((p) => ({ ...p, ageMin: Number(e.target.value) }))} />
-                <span className="text-ink/40">to</span>
-                <Input type="number" value={profile.ageMax} onChange={(e) => setProfile((p) => ({ ...p, ageMax: Number(e.target.value) }))} />
-              </div>
-            </div>
-          )}
-
-          {step === 5 && (
-            <div className="space-y-2 text-sm">
-              <p className="font-medium">Review your profile</p>
-              <p><span className="text-ink/50">Bio:</span> {profile.bio || "—"}</p>
-              <p><span className="text-ink/50">Interests:</span> {profile.interests.join(", ") || "—"}</p>
-              <p><span className="text-ink/50">Looking for:</span> {profile.intention}</p>
-            </div>
-          )}
-
-          {step === 6 && (
-            <div className="space-y-3 text-sm">
-              <p>Membership selection and payment happen on the next screen once your profile draft is saved.</p>
-            </div>
-          )}
-
-          {step === 7 && (
-            <div className="space-y-3 text-sm">
-              <p>Ready to submit your profile for admin review. You&apos;ll be notified once it&apos;s approved.</p>
+              <p className="text-xs text-ink/40 text-center pt-1">
+                Payment agle screen pe hoga — abhi sirf profile submit karo.
+              </p>
               {uploadError && (
                 <p className="text-sm text-danger bg-danger/10 rounded-lg px-3 py-2">{uploadError}</p>
               )}

@@ -86,6 +86,26 @@ export default function ProfileDetailPage() {
     }
   };
 
+  const [messaging, setMessaging] = useState(false);
+  const sendMessage = async () => {
+    setMessaging(true);
+    try {
+      const res = await fetch("/api/chat/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUserId: userId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "Couldn't start a conversation.");
+        return;
+      }
+      router.push(`/messages?with=${userId}`);
+    } finally {
+      setMessaging(false);
+    }
+  };
+
   const report = async () => {
     const reason = prompt(
       "Reason? Type one of: FAKE_PROFILE, SPAM, HARASSMENT, SCAM, IMPERSONATION, INAPPROPRIATE_CONTENT, THREATENING_BEHAVIOUR, OTHER"
@@ -190,6 +210,10 @@ export default function ProfileDetailPage() {
           <div className="space-y-2 pt-2">
             <Button className="w-full" loading={liking} disabled={profile.alreadyLiked} onClick={like}>
               {profile.alreadyLiked ? "Liked ❤" : "Like ❤"}
+            </Button>
+
+            <Button variant="ghost" className="w-full" loading={messaging} onClick={sendMessage}>
+              💬 Send Message
             </Button>
 
             <Button variant="ghost" className="w-full" loading={connecting} disabled={connectSent} onClick={sendConnectRequest}>
