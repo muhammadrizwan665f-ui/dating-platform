@@ -127,8 +127,11 @@ export default function OnboardingPage() {
   if (loading) return <p className="text-center py-20 text-sm text-ink/50">Loading…</p>;
 
   return (
-    <main className="min-h-screen bg-base px-6 py-10 flex flex-col items-center">
-      <div className="w-full max-w-md">
+    <main className="min-h-screen bg-gradient-to-br from-rose-50 via-base to-plum-500/10 px-6 py-10 flex flex-col items-center relative overflow-hidden">
+      <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-rose-200/30 blur-3xl" />
+
+      <div className="relative w-full max-w-md">
+        <p className="font-display text-xl font-semibold text-rose-500 text-center mb-6">💗 DilMil</p>
         {rejectionNote && (
           <div className="mb-4 rounded-xl bg-gold-400/10 border border-gold-400/30 px-4 py-3 text-sm text-gold-500">
             {rejectionNote}
@@ -138,16 +141,16 @@ export default function OnboardingPage() {
           <span className="text-sm font-medium text-ink/60">
             Step {step + 1} / {STEP_LABELS.length}
           </span>
-          <span className="text-sm text-rose-500">{STEP_LABELS[step]}</span>
+          <span className="text-sm text-rose-500 font-medium">{STEP_LABELS[step]}</span>
         </div>
         <div className="h-1.5 bg-black/5 rounded-full mb-8 overflow-hidden">
           <div
-            className="h-full bg-rose-500 transition-all"
+            className="h-full bg-gradient-to-r from-rose-400 to-plum-500 transition-all"
             style={{ width: `${((step + 1) / STEP_LABELS.length) * 100}%` }}
           />
         </div>
 
-        <div className="surface-card p-6 min-h-[280px]">
+        <div className="surface-card p-6 min-h-[280px] shadow-cardHover">
           {step === 0 && (
             <div className="space-y-3">
               <p className="text-sm text-ink/60">Your basic details were captured at registration. You can refine your bio next.</p>

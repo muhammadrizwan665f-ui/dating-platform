@@ -162,7 +162,7 @@ export default function AdminPlansPage() {
                     </span>
                   )}
                 </p>
-                <p className="text-xs text-ink/50 mt-0.5">Rs.{p.price} / {p.durationDays} days</p>
+                <p className="text-xs text-ink/50 mt-0.5">Rs.{p.price} / {p.durationDays >= 3650 ? "Lifetime" : `${p.durationDays} days`}</p>
               </div>
               <button onClick={() => startEdit(p)} className="text-xs font-medium text-plum-600 px-2">Edit</button>
               <label className="flex items-center gap-1.5 text-xs">

@@ -10,11 +10,11 @@ const FEATURES = [
 
 export function WhyChooseDilMil() {
   return (
-    <section className="py-16 px-5 sm:px-8 bg-rose-50/50 relative overflow-hidden">
+    <section className="py-10 px-5 sm:px-8 bg-rose-50/50 relative overflow-hidden">
       <div className="max-w-6xl mx-auto text-center relative z-10">
         <p className="text-xs font-bold uppercase tracking-widest text-rose-500 mb-2">Why DilMil</p>
         <h2 className="font-display text-3xl sm:text-4xl font-semibold">Why Choose DilMil?</h2>
-        <p className="text-ink/50 mt-3 mb-10 max-w-md mx-auto">
+        <p className="text-ink/50 mt-3 mb-6 max-w-md mx-auto">
           More than just a dating app — it&apos;s a community. Here&apos;s what makes us special.
         </p>
 

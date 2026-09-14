@@ -40,7 +40,7 @@ export default async function HomePage() {
       <Navbar />
       <main className="overflow-x-hidden">
         {/* HERO */}
-        <section className="relative px-5 sm:px-8 pt-14 pb-20 max-w-6xl mx-auto">
+        <section className="relative px-5 sm:px-8 pt-8 pb-10 max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left: copy */}
             <div className="text-center lg:text-left">
@@ -96,10 +96,10 @@ export default async function HomePage() {
 
         {/* Featured profiles */}
         {featured.length > 0 && (
-          <section className="py-16 px-5 sm:px-8">
+          <section className="py-10 px-5 sm:px-8">
             <div className="max-w-6xl mx-auto">
               <h2 className="font-display text-3xl font-semibold text-center mb-2">People You Could Meet ❤️</h2>
-              <p className="text-center text-ink/50 text-sm mb-10">A glimpse of the DilMil community</p>
+              <p className="text-center text-ink/50 text-sm mb-6">A glimpse of the DilMil community</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {featured.map((p) => (
                   <div key={p.id} className="surface-card overflow-hidden hover:shadow-cardHover transition-shadow">
@@ -131,10 +131,10 @@ export default async function HomePage() {
         )}
 
         {/* Social feed preview */}
-        <section className="py-16 px-5 sm:px-8 bg-rose-50/50">
+        <section className="py-10 px-5 sm:px-8 bg-rose-50/50">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-display text-3xl font-semibold mb-2">Share. Connect. Be Yourself.</h2>
-            <p className="text-ink/50 mb-10">DilMil is also a community — not just a swipe.</p>
+            <p className="text-ink/50 mb-6">DilMil is also a community — not just a swipe.</p>
             {feedPosts.length > 0 ? (
               <div className="grid sm:grid-cols-3 gap-4 text-left">
                 {feedPosts.map((post) => (
@@ -170,12 +170,12 @@ export default async function HomePage() {
 
         {/* Membership plans */}
         {plans.length > 0 && (
-          <section className="py-16 px-5 sm:px-8">
+          <section className="py-10 px-5 sm:px-8">
             <div className="max-w-5xl mx-auto text-center">
               <p className="text-xs font-bold uppercase tracking-widest text-rose-500 mb-2">Choose Your Plan</p>
               <h2 className="font-display text-3xl font-semibold mb-2">Membership Plans</h2>
               <p className="text-ink/50 mb-2 max-w-md mx-auto">More visibility. Better discovery. More ways to connect.</p>
-              <p className="text-xs text-ink/40 mb-10">Plans improve reach — never guaranteed matches or dates.</p>
+              <p className="text-xs text-ink/40 mb-6">Plans improve reach — never guaranteed matches or dates.</p>
               <div className="grid sm:grid-cols-3 gap-6 text-left">
                 {plans.map((p, i) => {
                   const isMid = i === 1 && plans.length >= 2;
@@ -221,7 +221,7 @@ export default async function HomePage() {
         )}
 
         {/* Safety */}
-        <section className="bg-rose-50/50 py-16 px-5 sm:px-8">
+        <section className="bg-rose-50/50 py-10 px-5 sm:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="font-display text-3xl font-semibold mb-4">Safety, by Design</h2>
             <div className="grid sm:grid-cols-2 gap-3 text-left mt-8">
@@ -251,7 +251,7 @@ export default async function HomePage() {
         <WhyChooseDilMil />
 
         {/* Final CTA */}
-        <section className="bg-gradient-to-br from-rose-500 to-plum-500 py-16 px-5 sm:px-8 text-center">
+        <section className="bg-gradient-to-br from-rose-500 to-plum-500 py-10 px-5 sm:px-8 text-center">
           <h2 className="font-display text-3xl sm:text-4xl font-semibold text-white mb-3">
             Your next meaningful connection could be one click away. ❤️
           </h2>
@@ -266,7 +266,7 @@ export default async function HomePage() {
         </section>
 
         {/* Footer */}
-        <footer className="bg-[#14111A] text-white/70 py-14 px-5 sm:px-8">
+        <footer className="bg-[#14111A] text-white/70 py-10 px-5 sm:px-8">
           <div className="max-w-6xl mx-auto grid sm:grid-cols-4 gap-10">
             <div>
               <p className="font-display text-xl font-semibold text-white flex items-center gap-1.5">💗 DilMil</p>

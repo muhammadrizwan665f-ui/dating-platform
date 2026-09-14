@@ -107,7 +107,10 @@ export default function MembershipPage() {
               <p className="text-xs font-semibold uppercase tracking-wide opacity-70">{plan.badge || plan.name}</p>
               <p className="font-display text-2xl font-semibold mt-1">{plan.name}</p>
               <p className="text-3xl font-semibold mt-2">
-                Rs.{plan.price} <span className="text-sm font-normal opacity-60">/{plan.durationDays}d</span>
+                Rs.{plan.price}{" "}
+                <span className="text-sm font-normal opacity-60">
+                  {plan.durationDays >= 3650 ? "/ Lifetime" : `/${plan.durationDays}d`}
+                </span>
               </p>
               <ul className="mt-5 space-y-2 text-sm">
                 {Object.entries(plan.features || {}).map(([k, v]) => (

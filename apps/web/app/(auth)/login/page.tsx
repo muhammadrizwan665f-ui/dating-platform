@@ -30,9 +30,16 @@ function LoginForm() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6 bg-base">
-      <form onSubmit={onSubmit} className="surface-card w-full max-w-sm p-8 space-y-4">
-        <h1 className="font-display text-2xl font-semibold text-center">Welcome back</h1>
+    <main className="min-h-screen flex items-center justify-center px-6 bg-gradient-to-br from-rose-50 via-base to-plum-500/10 relative overflow-hidden">
+      <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-rose-200/40 blur-3xl" />
+      <div className="absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-plum-500/10 blur-3xl" />
+
+      <form onSubmit={onSubmit} className="relative surface-card w-full max-w-sm p-8 space-y-4 shadow-cardHover">
+        <div className="text-center mb-2">
+          <p className="font-display text-2xl font-semibold text-rose-500">💗 DilMil</p>
+          <h1 className="font-display text-xl font-semibold mt-3">Welcome back</h1>
+          <p className="text-xs text-ink/50 mt-1">Log in to continue your journey ❤️</p>
+        </div>
         {error && <p className="text-sm text-danger bg-danger/10 rounded-lg px-3 py-2">{error}</p>}
         <Input label="Email or phone" required value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
         <Input label="Password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />

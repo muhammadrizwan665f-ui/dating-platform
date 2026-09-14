@@ -27,7 +27,10 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function generateProfile(opts: { gender?: string; ageMin: number; ageMax: number; cities: string[]; intentions: string[] }, index: number) {
+function generateProfile(
+  opts: { gender?: string; ageMin: number; ageMax: number; cities: string[]; intentions: string[]; photoUrl?: string },
+  index: number
+) {
   const g = opts.gender === "MALE" || opts.gender === "FEMALE" ? opts.gender : pick(["MALE", "FEMALE"]);
   const name = g === "MALE" ? pick(MALE_NAMES) : pick(FEMALE_NAMES);
   const age = opts.ageMin + Math.floor(Math.random() * (opts.ageMax - opts.ageMin + 1));
@@ -42,8 +45,10 @@ function generateProfile(opts: { gender?: string; ageMin: number; ageMax: number
     intention: pick(opts.intentions.length ? opts.intentions : ["DATING", "FRIENDSHIP", "RELATIONSHIP"]),
     profession: pick(PROFESSIONS),
     education: pick(EDUCATION),
-    // Synthetic illustrated avatar (not a photo of a real person) — appropriate for auto-generated demo data.
-    photoUrl: `https://api.dicebear.com/7.x/personas/svg?seed=${encodeURIComponent(seed)}`,
+    // Use the admin-uploaded real photo for this slot if one was provided;
+    // otherwise fall back to a synthetic illustrated avatar (not a photo of
+    // a real person) so the generator still works with zero uploads.
+    photoUrl: opts.photoUrl || `https://api.dicebear.com/7.x/personas/svg?seed=${encodeURIComponent(seed)}`,
   };
 }
 
@@ -74,14 +79,19 @@ export async function POST(req: NextRequest) {
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json();
-  const n = Math.min(Math.max(Number(body.count) || 10, 1), 1000);
+  const photoUrls: string[] = Array.isArray(body.photoUrls) ? body.photoUrls.filter((u: unknown) => typeof u === "string" && u) : [];
+  // If real photos were uploaded, generate exactly one profile per photo —
+  // this is the combined "upload 50 photos, get 50 active profiles" flow.
+  const n = photoUrls.length > 0 ? photoUrls.length : Math.min(Math.max(Number(body.count) || 10, 1), 1000);
   const ageMin = Math.max(18, Number(body.ageMin) || 21);
   const ageMax = Math.min(65, Number(body.ageMax) || 35);
   const cities: string[] = Array.isArray(body.cities) && body.cities.length ? body.cities : ALL_CITIES;
   const intentions: string[] = Array.isArray(body.intentions) && body.intentions.length ? body.intentions : ["DATING", "FRIENDSHIP", "RELATIONSHIP"];
   const dryRun = !!body.dryRun;
 
-  const generated = Array.from({ length: n }, (_, i) => generateProfile({ gender: body.gender, ageMin, ageMax, cities, intentions }, i));
+  const generated = Array.from({ length: n }, (_, i) =>
+    generateProfile({ gender: body.gender, ageMin, ageMax, cities, intentions, photoUrl: photoUrls[i] }, i)
+  );
 
   if (dryRun) {
     return NextResponse.json({ success: true, dryRun: true, count: n, preview: generated.slice(0, 24), all: generated });

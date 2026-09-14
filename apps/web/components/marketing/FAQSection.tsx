@@ -16,9 +16,9 @@ export function FAQSection() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section className="py-16 px-5 sm:px-8">
+    <section className="py-10 px-5 sm:px-8">
       <div className="max-w-2xl mx-auto">
-        <h2 className="font-display text-3xl font-semibold text-center mb-10">Frequently Asked Questions</h2>
+        <h2 className="font-display text-3xl font-semibold text-center mb-6">Frequently Asked Questions</h2>
         <div className="space-y-3">
           {FAQS.map(([q, a], i) => (
             <div key={q} className="surface-card overflow-hidden">

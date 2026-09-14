@@ -11,11 +11,11 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section className="py-16 px-5 sm:px-8">
+    <section className="py-10 px-5 sm:px-8">
       <div className="max-w-6xl mx-auto text-center">
         <p className="text-xs font-bold uppercase tracking-widest text-rose-500 mb-2">Simple Steps</p>
         <h2 className="font-display text-3xl sm:text-4xl font-semibold">How It Works</h2>
-        <p className="text-ink/50 mt-3 mb-10 max-w-md mx-auto">
+        <p className="text-ink/50 mt-3 mb-6 max-w-md mx-auto">
           Getting started is easy — follow these simple steps and find your perfect match.
         </p>
 

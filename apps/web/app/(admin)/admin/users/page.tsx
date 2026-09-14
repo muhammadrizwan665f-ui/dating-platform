@@ -58,7 +58,11 @@ export default function AdminUsersPage() {
           columns={["Name", "Contact", "Gender / City", "Status", "Actions"]}
           rows={users.map((u) => [
             u.profile?.displayName ?? "—",
-            u.email ?? u.phone ?? "—",
+            <div key="contact" className="text-xs space-y-0.5">
+              {u.email && <p>{u.email}</p>}
+              {u.phone && <p className="text-success font-medium">{u.phone}</p>}
+              {!u.email && !u.phone && "—"}
+            </div>,
             `${u.profile?.gender ?? "—"} · ${u.profile?.city ?? "—"}`,
             <Badge key="status" tone={toneFor[u.status] ?? "default"}>{u.status}</Badge>,
             <div key="actions" className="flex gap-2">

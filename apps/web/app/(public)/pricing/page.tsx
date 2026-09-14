@@ -21,15 +21,15 @@ export default function PricingPage() {
   return (
     <>
       <Navbar />
-      <main className="px-4 sm:px-6 py-14 max-w-5xl mx-auto">
-        <div className="rounded-3xl bg-gradient-to-br from-rose-500 to-plum-500 p-8 text-center text-white mb-10">
+      <main className="px-4 sm:px-6 py-10 max-w-5xl mx-auto">
+        <div className="rounded-3xl bg-gradient-to-br from-rose-500 to-plum-500 p-8 text-center text-white mb-6">
           <h1 className="font-display text-2xl sm:text-3xl font-semibold">Choose Your DilMil Experience ❤️</h1>
           <p className="text-white/80 mt-2 text-sm max-w-md mx-auto">
             Get more visibility, discover more people and make meaningful connections.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-3 gap-6 mb-10">
+        <div className="grid sm:grid-cols-3 gap-6 mb-6">
           {plans.map((plan, i) => {
             const isPro = i === 1 && plans.length >= 2;
             const isDiamond = i === plans.length - 1 && plans.length >= 3;
@@ -48,7 +48,10 @@ export default function PricingPage() {
                 <p className="text-xs font-semibold uppercase tracking-wide opacity-70">{plan.badge || plan.name}</p>
                 <p className="font-display text-2xl font-semibold mt-1">{plan.name}</p>
                 <p className="text-3xl font-semibold mt-2">
-                  Rs.{plan.price} <span className="text-sm font-normal opacity-60">/{plan.durationDays}d</span>
+                  Rs.{plan.price}{" "}
+                  <span className="text-sm font-normal opacity-60">
+                    {plan.durationDays >= 3650 ? "/ Lifetime" : `/${plan.durationDays}d`}
+                  </span>
                 </p>
                 <ul className="mt-5 space-y-2 text-sm">
                   {Object.entries(plan.features || {}).map(([k, v]) => (
@@ -74,7 +77,7 @@ export default function PricingPage() {
           })}
         </div>
 
-        <p className="text-center text-xs text-ink/40 mb-10">
+        <p className="text-center text-xs text-ink/40 mb-6">
           Premium plans do not guarantee dates, matches, or replies — they improve platform reach and features.
         </p>
 

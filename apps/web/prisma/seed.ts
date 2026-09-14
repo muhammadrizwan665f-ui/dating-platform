@@ -4,36 +4,41 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  const LIFETIME_DAYS = 36500; // ~100 years — practically "lifetime" within the existing schema
+
   // Membership plans — admin can edit price/duration/features later from the panel.
+  // All 3 are lifetime by default; admin can change any plan back to a fixed
+  // duration any time from Admin > Membership Plans.
   await prisma.membershipPlan.upsert({
     where: { name: "Basic" },
-    update: {},
+    update: { durationDays: LIFETIME_DAYS },
     create: {
       name: "Basic",
       price: 499,
-      durationDays: 30,
+      durationDays: LIFETIME_DAYS,
+      badge: "LIFETIME",
       features: { discoveryPriority: 1, dailyLikes: 20 },
     },
   });
   await prisma.membershipPlan.upsert({
     where: { name: "Pro" },
-    update: {},
+    update: { durationDays: LIFETIME_DAYS },
     create: {
       name: "Pro",
       price: 1499,
-      durationDays: 30,
-      badge: "POPULAR",
+      durationDays: LIFETIME_DAYS,
+      badge: "POPULAR · LIFETIME",
       features: { discoveryPriority: 2, dailyLikes: 100, profileBadge: true },
     },
   });
   await prisma.membershipPlan.upsert({
     where: { name: "Diamond" },
-    update: {},
+    update: { durationDays: LIFETIME_DAYS },
     create: {
       name: "Diamond",
       price: 2999,
-      durationDays: 30,
-      badge: "BEST VALUE",
+      durationDays: LIFETIME_DAYS,
+      badge: "BEST VALUE · LIFETIME",
       features: { discoveryPriority: 3, dailyLikes: -1, profileBadge: true, boostCreditsMonthly: 2 },
     },
   });

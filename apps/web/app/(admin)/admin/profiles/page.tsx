@@ -91,7 +91,22 @@ export default function AdminProfilesPage() {
                 </div>
               )}
               <p className="text-xs text-ink/40 mt-2">DOB: {new Date(p.dob).toLocaleDateString()}</p>
-              <p className="text-xs text-ink/40">{p.user.email ?? p.user.phone}</p>
+              <div className="text-xs text-ink/40 mt-2 space-y-0.5">
+                {p.user.email && <p>✉️ {p.user.email}</p>}
+                {p.user.phone && (
+                  <p>
+                    📱{" "}
+                    <a
+                      href={`https://wa.me/${p.user.phone.replace(/\D/g, "")}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-success font-medium underline"
+                    >
+                      {p.user.phone} (WhatsApp)
+                    </a>
+                  </p>
+                )}
+              </div>
 
               <div className="flex flex-wrap gap-1.5 mt-4">
                 <Button size="sm" onClick={() => act(p.id, "APPROVE")}>Approve</Button>
